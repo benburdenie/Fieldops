@@ -2,7 +2,7 @@
 
 > Started as a coding project. Turned into something that might actually be useful.
 
-**Live Demo:** (https://benburdenie.github.io/fieldops/)
+**Live Demo:** https://benburdenie.github.io/Fieldops/
 
 ## The Story
 
