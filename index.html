@@ -1,0 +1,2520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FieldOps — Crew & Equipment Management for Landscaping Companies</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&family=Inconsolata:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --yellow: #F5C800;
+    --yellow-dark: #c9a500;
+    --black: #111111;
+    --off-white: #F2EFE8;
+    --paper: #FAF8F3;
+    --mid: #6B6560;
+    --border: #C8C3BA;
+    --red: #C0392B;
+    --green: #2E7D52;
+    --blue: #1A4F8A;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Barlow', sans-serif; background: var(--off-white); color: var(--black); min-height: 100vh; }
+
+  header { background: var(--black); position: sticky; top: 0; z-index: 100; border-bottom: 4px solid var(--yellow); }
+  .header-inner { max-width: 1280px; margin: 0 auto; padding: 0 2rem; display: flex; align-items: stretch; height: 60px; }
+  .logo-block { display: flex; align-items: center; padding-right: 2rem; border-right: 1px solid #2e2e2e; gap: 12px; }
+  .logo-accent { background: var(--yellow); width: 5px; height: 34px; flex-shrink: 0; }
+  .logo-text { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 1.55rem; letter-spacing: 2px; text-transform: uppercase; color: #fff; line-height: 1; }
+  .logo-text span { color: var(--yellow); }
+  .logo-sub { font-family: 'Inconsolata', monospace; font-size: 0.58rem; letter-spacing: 2px; color: #555; text-transform: uppercase; margin-top: 3px; }
+  .header-date { display: flex; align-items: center; padding-left: 2rem; font-family: 'Inconsolata', monospace; font-size: 0.7rem; color: #fff; letter-spacing: 1px; text-transform: uppercase; }
+
+  .main-view { max-width: 1280px; margin: 0 auto; padding: 2.5rem 2rem; }
+
+  .section-label { font-family: 'Inconsolata', monospace; font-size: 0.66rem; letter-spacing: 3px; text-transform: uppercase; color: var(--mid); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.75rem; }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .stat-strip { display: flex; border: 2px solid var(--black); margin-bottom: 2.5rem; }
+  .stat-item { flex: 1; padding: 1.1rem 1.5rem; border-right: 2px solid var(--black); background: var(--paper); }
+  .stat-item:last-child { border-right: none; }
+  .stat-num { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 2.4rem; line-height: 1; color: var(--black); }
+  .stat-label { font-family: 'Inconsolata', monospace; font-size: 0.62rem; letter-spacing: 2px; text-transform: uppercase; color: var(--mid); margin-top: 2px; }
+
+  .big-toggle { display: grid; grid-template-columns: 1fr 1fr; border: 2px solid var(--black); }
+  .toggle-card { padding: 3rem 2.5rem; cursor: pointer; transition: background 0.14s ease; position: relative; overflow: hidden; }
+  .toggle-card:first-child { border-right: 2px solid var(--black); }
+  .toggle-card:hover { background: var(--yellow); }
+  .toggle-card:hover .tc-num { color: rgba(0,0,0,0.15); }
+  .toggle-card:hover .tc-arrow { opacity: 1; transform: translateX(0); }
+  .tc-num { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 4.5rem; line-height: 1; color: var(--border); margin-bottom: 0.75rem; transition: color 0.14s; }
+  .tc-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 2.2rem; letter-spacing: 1px; text-transform: uppercase; color: var(--black); margin-bottom: 0.4rem; line-height: 1; }
+  .tc-desc { font-size: 0.86rem; color: var(--mid); line-height: 1.5; }
+  .tc-arrow { position: absolute; bottom: 2rem; right: 2rem; font-size: 1.5rem; opacity: 0; transform: translateX(-10px); transition: all 0.18s ease; color: var(--black); }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  .back-btn { display: inline-flex; align-items: center; gap: 0.4rem; font-family: 'Inconsolata', monospace; font-size: 0.75rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--mid); cursor: pointer; border: none; background: none; padding: 0.2rem 0; margin-bottom: 1.5rem; transition: color 0.12s; }
+  .back-btn:hover { color: var(--black); }
+
+  .toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; gap: 1rem; flex-wrap: wrap; }
+  .toolbar-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 2rem; text-transform: uppercase; letter-spacing: 1px; }
+
+  .btn { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 0.88rem; letter-spacing: 1.5px; text-transform: uppercase; padding: 0.55rem 1.4rem; border: 2px solid transparent; cursor: pointer; transition: all 0.12s ease; border-radius: 0; }
+  .btn-primary { background: var(--black); color: var(--yellow); border-color: var(--black); }
+  .btn-primary:hover { background: #333; }
+  .btn-secondary { background: transparent; color: var(--black); border-color: var(--black); }
+  .btn-secondary:hover { background: var(--black); color: var(--yellow); }
+  .btn-danger { background: transparent; color: var(--red); border-color: var(--red); }
+  .btn-danger:hover { background: var(--red); color: #fff; }
+  .btn-blue { background: transparent; color: var(--blue); border-color: var(--blue); }
+  .btn-blue:hover { background: var(--blue); color: #fff; }
+  .btn-sm { padding: 0.32rem 0.85rem; font-size: 0.76rem; }
+
+  .cat-tabs { display: flex; border: 2px solid var(--black); width: fit-content; margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .cat-tab { font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 0.82rem; letter-spacing: 1.5px; text-transform: uppercase; padding: 0.5rem 1.2rem; border: none; border-right: 2px solid var(--black); color: var(--mid); cursor: pointer; background: transparent; transition: all 0.12s ease; }
+  .cat-tab:last-child { border-right: none; }
+  .cat-tab:hover { background: var(--off-white); color: var(--black); }
+  .cat-tab.active { background: var(--black); color: var(--yellow); }
+
+  .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(285px, 1fr)); border: 2px solid var(--black); }
+  .card { padding: 1.5rem; cursor: pointer; transition: background 0.12s ease; border-right: 2px solid var(--black); border-bottom: 2px solid var(--black); background: var(--paper); position: relative; }
+  .card:hover { background: var(--yellow); }
+  .card:hover .card-meta { color: #444; }
+  .card:hover .card-sub { color: #555; }
+  .card:hover .card-actions { border-top-color: rgba(0,0,0,0.15); }
+  .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.9rem; gap: 0.5rem; }
+  .card-name { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1.3rem; letter-spacing: 0.5px; text-transform: uppercase; color: var(--black); line-height: 1.1; }
+  .card-sub { font-family: 'Inconsolata', monospace; font-size: 0.68rem; color: var(--mid); letter-spacing: 0.5px; margin-top: 3px; }
+  .card-meta { font-size: 0.83rem; color: var(--mid); line-height: 1.65; }
+  .card-meta strong { color: var(--black); font-weight: 600; }
+  .card-actions { margin-top: 1.1rem; padding-top: 0.9rem; border-top: 1px solid var(--border); display: flex; gap: 0.4rem; flex-wrap: wrap; }
+
+  .status-badge { font-family: 'Inconsolata', monospace; font-size: 0.6rem; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; padding: 3px 7px; white-space: nowrap; flex-shrink: 0; }
+  .status-available { background: #D4EDDA; color: var(--green); border: 1px solid #A8D5B5; }
+  .status-inuse { background: #FFF3CD; color: #7a5c00; border: 1px solid #e8cc60; }
+  .status-repair { background: #F8D7DA; color: var(--red); border: 1px solid #EDABAB; }
+  .status-assigned { background: #D6E8FF; color: var(--blue); border: 1px solid #9BBFE0; }
+
+  .empty-state { grid-column: 1/-1; text-align: center; padding: 4rem 2rem; color: var(--mid); background: var(--paper); }
+  .empty-state .e-icon { font-size: 2.5rem; margin-bottom: 0.75rem; display: block; }
+  .empty-state p { font-size: 0.88rem; margin-bottom: 1.5rem; }
+
+  .overlay { display: none; position: fixed; inset: 0; background: rgba(17,17,17,0.6); z-index: 200; align-items: center; justify-content: center; padding: 1rem; }
+  .overlay.open { display: flex; }
+  .modal { background: var(--paper); border: 2px solid var(--black); width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; animation: slideUp 0.17s ease; }
+  @keyframes slideUp { from { transform: translateY(14px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .modal-header { background: var(--black); padding: 1.1rem 1.75rem; display: flex; align-items: center; justify-content: space-between; }
+  .modal-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1.35rem; letter-spacing: 2px; text-transform: uppercase; color: var(--yellow); }
+  .modal-close { background: transparent; border: none; color: #777; font-size: 1.2rem; cursor: pointer; padding: 0 0.3rem; line-height: 1; transition: color 0.12s; }
+  .modal-close:hover { color: #fff; }
+  .modal-body { padding: 1.75rem; }
+
+  .detail-section { margin-bottom: 1.2rem; }
+  .detail-label { font-family: 'Inconsolata', monospace; font-size: 0.63rem; letter-spacing: 2px; text-transform: uppercase; color: var(--mid); margin-bottom: 0.2rem; }
+  .detail-value { font-size: 0.95rem; color: var(--black); font-weight: 500; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 1.2rem 0; }
+
+  .assignment-item { border: 1px solid var(--border); border-left: 4px solid var(--yellow-dark); padding: 0.85rem 1rem; margin-bottom: 0.5rem; background: var(--off-white); }
+  .assignment-item.booking-item { border-left-color: var(--blue); }
+  .job-name { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1rem; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 0.3rem; }
+  .job-meta { font-family: 'Inconsolata', monospace; font-size: 0.73rem; color: var(--mid); line-height: 1.7; }
+
+  .active-job-badge { display: inline-block; background: var(--black); color: var(--yellow); font-family: 'Inconsolata', monospace; font-size: 0.56rem; letter-spacing: 1.5px; text-transform: uppercase; padding: 2px 5px; margin-left: 6px; vertical-align: middle; position: relative; top: -1px; }
+  .perm-badge { display: inline-block; background: var(--blue); color: #fff; font-family: 'Inconsolata', monospace; font-size: 0.56rem; letter-spacing: 1.5px; text-transform: uppercase; padding: 2px 5px; margin-left: 6px; vertical-align: middle; position: relative; top: -1px; }
+  .booking-badge { display: inline-block; background: #1A4F8A22; color: var(--blue); border: 1px solid var(--blue); font-family: 'Inconsolata', monospace; font-size: 0.56rem; letter-spacing: 1.5px; text-transform: uppercase; padding: 2px 5px; margin-left: 6px; vertical-align: middle; position: relative; top: -1px; }
+
+  /* Permanent equipment chips */
+  .perm-eq-list { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.5rem; }
+  .perm-eq-chip { background: #D6E8FF; color: var(--blue); border: 1px solid #9BBFE0; font-family: 'Inconsolata', monospace; font-size: 0.7rem; padding: 3px 8px; display: flex; align-items: center; gap: 5px; }
+  .perm-eq-chip .remove-perm { cursor: pointer; color: var(--blue); font-size: 0.8rem; line-height: 1; opacity: 0.6; transition: opacity 0.1s; }
+  .perm-eq-chip .remove-perm:hover { opacity: 1; }
+
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .form-field { display: flex; flex-direction: column; gap: 0.35rem; }
+  .form-field.span2 { grid-column: 1/-1; }
+  label { font-family: 'Inconsolata', monospace; font-size: 0.62rem; letter-spacing: 2px; text-transform: uppercase; color: var(--mid); font-weight: 600; }
+  input, select, textarea { background: #fff; border: 1.5px solid var(--border); padding: 0.6rem 0.75rem; color: var(--black); font-family: 'Barlow', sans-serif; font-size: 0.9rem; transition: border-color 0.12s; border-radius: 0; width: 100%; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--black); }
+  textarea { resize: vertical; min-height: 80px; }
+  .form-actions { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border); }
+
+  .conflict-alert { background: #F8D7DA; border: 1.5px solid #EDABAB; border-left: 4px solid var(--red); padding: 0.75rem 1rem; font-family: 'Inconsolata', monospace; font-size: 0.78rem; color: var(--red); margin-bottom: 1rem; display: none; line-height: 1.6; }
+  .conflict-alert.visible { display: block; }
+
+  .info-box { background: #D6E8FF; border: 1.5px solid #9BBFE0; border-left: 4px solid var(--blue); padding: 0.75rem 1rem; font-family: 'Inconsolata', monospace; font-size: 0.75rem; color: var(--blue); margin-bottom: 1rem; line-height: 1.6; }
+
+  .radio-group { display: flex; gap: 0; border: 1.5px solid var(--border); }
+  .radio-opt { flex: 1; }
+  .radio-opt input[type=radio] { display: none; }
+  .radio-opt label { display: block; text-align: center; padding: 0.5rem; cursor: pointer; font-size: 0.78rem; letter-spacing: 1px; border-right: 1.5px solid var(--border); color: var(--mid); transition: all 0.12s; }
+  .radio-opt:last-child label { border-right: none; }
+  .radio-opt input[type=radio]:checked + label { background: var(--black); color: var(--yellow); }
+
+
+  /* ── JOB STATUS BADGES ── */
+  .job-status-badge { font-family: 'Inconsolata', monospace; font-size: 0.6rem; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; padding: 3px 8px; white-space: nowrap; cursor: pointer; border: none; }
+  .job-status-notstarted { background: #F2EFE8; color: var(--mid); border: 1px solid var(--border); }
+  .job-status-inprogress { background: #FFF3CD; color: #7a5c00; border: 1px solid #e8cc60; }
+  .job-status-complete { background: #D4EDDA; color: var(--green); border: 1px solid #A8D5B5; }
+  .job-status-overdue { background: #F8D7DA; color: var(--red); border: 1px solid #EDABAB; }
+
+  /* ── TODAY SUMMARY STRIP ── */
+  .today-strip { border: 2px solid var(--black); margin-bottom: 2rem; background: var(--paper); }
+  .today-strip-header { background: var(--black); padding: 0.6rem 1.5rem; display: flex; align-items: center; justify-content: space-between; }
+  .today-strip-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 0.95rem; letter-spacing: 2px; text-transform: uppercase; color: var(--yellow); }
+  .today-strip-body { padding: 1rem 1.5rem; display: flex; gap: 2rem; flex-wrap: wrap; }
+  .today-item { font-size: 0.83rem; color: var(--mid); line-height: 1.6; }
+  .today-item strong { color: var(--black); display: block; font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; letter-spacing: 0.5px; text-transform: uppercase; }
+
+  /* ── OVERDUE ALERT BANNER ── */
+  .overdue-banner { background: #F8D7DA; border: 2px solid var(--red); border-left: 6px solid var(--red); padding: 0.9rem 1.25rem; margin-bottom: 1.5rem; display: none; }
+  .overdue-banner.visible { display: block; }
+  .overdue-banner-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1rem; letter-spacing: 1px; text-transform: uppercase; color: var(--red); margin-bottom: 0.4rem; }
+  .overdue-banner-item { font-family: 'Inconsolata', monospace; font-size: 0.75rem; color: var(--red); line-height: 1.8; }
+
+  /* ── CLIENT SECTION ── */
+  .client-tag { display: inline-flex; align-items: center; gap: 5px; background: #f0f0e8; border: 1px solid var(--border); padding: 2px 8px; font-family: 'Inconsolata', monospace; font-size: 0.7rem; color: var(--mid); }
+
+  /* ── AVAILABILITY ── */
+  .avail-block { border: 1px solid var(--border); border-left: 4px solid var(--red); padding: 0.65rem 0.9rem; margin-bottom: 0.4rem; background: #fff8f8; display: flex; align-items: flex-start; justify-content: space-between; gap: 0.5rem; }
+  .avail-dates { font-family: 'Inconsolata', monospace; font-size: 0.75rem; color: var(--red); font-weight: 600; }
+  .avail-reason { font-size: 0.8rem; color: var(--mid); margin-top: 2px; }
+  .avail-remove { background: none; border: none; cursor: pointer; color: var(--red); font-size: 0.85rem; opacity: 0.5; padding: 0; flex-shrink: 0; transition: opacity 0.1s; }
+  .avail-remove:hover { opacity: 1; }
+  .crew-unavail-badge { background: #F8D7DA; color: var(--red); border: 1px solid #EDABAB; font-family: 'Inconsolata', monospace; font-size: 0.6rem; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; padding: 3px 7px; white-space: nowrap; }
+
+  /* ── WORKERS ── */
+  .worker-list { display: flex; flex-direction: column; gap: 0.35rem; margin-top: 0.5rem; }
+  .worker-row { display: flex; align-items: center; justify-content: space-between; padding: 0.4rem 0.7rem; background: #fff; border: 1px solid var(--border); font-size: 0.85rem; }
+  .worker-name { font-weight: 500; }
+  .worker-role { font-family: 'Inconsolata', monospace; font-size: 0.65rem; color: var(--mid); letter-spacing: 0.5px; }
+  .worker-remove { background: none; border: none; cursor: pointer; color: var(--mid); font-size: 0.8rem; padding: 0 2px; transition: color 0.1s; }
+  .worker-remove:hover { color: var(--red); }
+
+  /* ── DISPATCH PRINT ── */
+  @media print {
+    header, .back-btn, .toolbar, .cat-tabs, .card-actions, .btn, .overlay, #homeView, #crewPanel, #equipmentPanel, #workersPanel, #jobsPanel { display: none !important; }
+    #dispatchPrintArea { display: block !important; }
+    body { background: #fff; }
+    .dispatch-page { padding: 0; }
+  }
+  #dispatchPrintArea { display: none; }
+  .dispatch-page { font-family: 'Barlow', sans-serif; max-width: 900px; margin: 0 auto; padding: 2rem; }
+  .dispatch-header { border-bottom: 4px solid #111; padding-bottom: 1rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: flex-end; }
+  .dispatch-logo { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 2rem; letter-spacing: 2px; text-transform: uppercase; }
+  .dispatch-logo span { color: var(--yellow); background: #111; padding: 0 6px; }
+  .dispatch-date { font-family: 'Inconsolata', monospace; font-size: 0.8rem; color: var(--mid); text-align: right; }
+  .dispatch-section-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1.1rem; letter-spacing: 2px; text-transform: uppercase; border-bottom: 2px solid #111; padding-bottom: 0.3rem; margin: 1.5rem 0 0.75rem; }
+  .dispatch-job { border: 1.5px solid #ccc; padding: 0.8rem 1rem; margin-bottom: 0.6rem; break-inside: avoid; }
+  .dispatch-job-name { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.3rem; }
+  .dispatch-meta { font-family: 'Inconsolata', monospace; font-size: 0.72rem; color: #444; line-height: 1.8; }
+  .dispatch-no-jobs { font-family: 'Inconsolata', monospace; font-size: 0.8rem; color: var(--mid); padding: 1rem; border: 1px dashed var(--border); text-align: center; }
+  .dispatch-eq-free { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .dispatch-eq-chip { border: 1px solid #ccc; padding: 3px 10px; font-family: 'Inconsolata', monospace; font-size: 0.72rem; }
+
+  /* ── RETURNING SOON STRIP ── */
+  .returning-strip { background: #FFFBEA; border: 2px solid var(--yellow-dark); border-left: 6px solid var(--yellow-dark); padding: 0.9rem 1.25rem; margin-bottom: 1.5rem; display: none; }
+  .returning-strip.visible { display: block; }
+  .returning-strip-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1rem; letter-spacing: 1px; text-transform: uppercase; color: var(--yellow-dark); margin-bottom: 0.4rem; }
+  .returning-item { font-family: 'Inconsolata', monospace; font-size: 0.75rem; color: #7a5c00; line-height: 1.8; }
+
+  /* ── JOBS PANEL ── */
+  .jobs-filter-bar { display:flex; gap:0; border:2px solid var(--black); width:fit-content; margin-bottom:1.5rem; flex-wrap:wrap; }
+  .jobs-filter-btn { font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:0.82rem; letter-spacing:1.5px; text-transform:uppercase; padding:0.5rem 1.4rem; border:none; border-right:2px solid var(--black); color:var(--mid); cursor:pointer; background:transparent; transition:all 0.12s ease; }
+  .jobs-filter-btn:last-child { border-right:none; }
+  .jobs-filter-btn:hover { background:var(--off-white); color:var(--black); }
+  .jobs-filter-btn.active { background:var(--black); color:var(--yellow); }
+
+  .job-card { background:var(--paper); border-right:2px solid var(--black); border-bottom:2px solid var(--black); padding:0; cursor:pointer; transition:background 0.12s; position:relative; overflow:hidden; }
+  .job-card:hover { background:var(--yellow); }
+  .job-card:hover .job-card-body { color:#333; }
+  .job-card:hover .jc-meta { color:#555; }
+  .job-card-stripe { height:5px; width:100%; }
+  .job-card-stripe.stripe-upcoming  { background: var(--blue); }
+  .job-card-stripe.stripe-active    { background: var(--yellow-dark); }
+  .job-card-stripe.stripe-complete  { background: var(--green); }
+  .job-card-stripe.stripe-overdue   { background: var(--red); }
+  .job-card-body { padding:1.25rem 1.5rem 0.75rem; }
+  .jc-title { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:1.25rem; text-transform:uppercase; letter-spacing:0.5px; color:var(--black); line-height:1.15; margin-bottom:0.2rem; }
+  .jc-client { font-family:'Inconsolata',monospace; font-size:0.68rem; color:var(--mid); letter-spacing:0.5px; margin-bottom:0.6rem; }
+  .jc-meta { font-size:0.82rem; color:var(--mid); line-height:1.7; }
+  .jc-meta strong { color:var(--black); font-weight:600; }
+  .jc-dates { font-family:'Inconsolata',monospace; font-size:0.72rem; color:var(--mid); margin-bottom:0.5rem; display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap; }
+  .jc-days-chip { background:var(--black); color:var(--yellow); font-family:'Inconsolata',monospace; font-size:0.6rem; font-weight:600; letter-spacing:1px; text-transform:uppercase; padding:2px 6px; }
+  .job-card-actions { padding:0.7rem 1.5rem 1rem; border-top:1px solid var(--border); display:flex; gap:0.4rem; flex-wrap:wrap; margin-top:0.5rem; }
+  .job-card:hover .job-card-actions { border-top-color:rgba(0,0,0,0.15); }
+
+  /* job detail modal wider */
+  .modal-wide { max-width:700px; }
+
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: var(--off-white); }
+  ::-webkit-scrollbar-thumb { background: var(--border); }
+
+  @media (max-width: 640px) {
+    .big-toggle { grid-template-columns: 1fr; }
+    .toggle-card { border-right: none !important; border-top: none !important; border-bottom: 2px solid var(--black); }
+    .form-grid { grid-template-columns: 1fr; }
+    .form-field.span2 { grid-column: 1; }
+    .stat-strip { flex-wrap: wrap; }
+    .stat-item { min-width: 45%; }
+    .cat-tabs { width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- LANDING SECTION -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div id="landingPage" style="
+  font-family: 'Barlow', sans-serif;
+  background: #111;
+  color: #fff;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+">
+
+  <!-- NAV -->
+  <nav style="
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.4rem 3rem; border-bottom: 1px solid #222;
+    position: sticky; top: 0; background: #111; z-index: 50;
+  ">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="background:#F5C800;width:5px;height:32px;flex-shrink:0"></div>
+      <div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1.5rem;letter-spacing:2px;text-transform:uppercase;line-height:1">Field<span style="color:#F5C800">Ops</span></div>
+        <div style="font-family:'Inconsolata',monospace;font-size:0.55rem;letter-spacing:2px;color:#555;text-transform:uppercase;margin-top:2px">Crew & Equipment Manager</div>
+      </div>
+    </div>
+    <button onclick="enterDemo()" style="
+      background: #F5C800; color: #111; border: none; cursor: pointer;
+      font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+      font-size: 0.85rem; letter-spacing: 2px; text-transform: uppercase;
+      padding: 0.6rem 1.6rem; transition: all 0.15s;
+    " onmouseover="this.style.background='#fff'" onmouseout="this.style.background='#F5C800'">
+      View Live Demo →
+    </button>
+  </nav>
+
+  <!-- HERO -->
+  <div style="
+    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding: 6rem 2rem 4rem;
+    background: radial-gradient(ellipse at 50% 0%, #1a1500 0%, #111 60%);
+  ">
+    <div style="
+      font-family:'Inconsolata',monospace;font-size:0.65rem;letter-spacing:4px;
+      text-transform:uppercase;color:#F5C800;margin-bottom:1.5rem;
+      border:1px solid #F5C800;padding:4px 14px;display:inline-block;
+    ">Early Preview — Seeking Feedback</div>
+
+    <h1 style="
+      font-family:'Barlow Condensed',sans-serif;font-weight:800;
+      font-size:clamp(3rem,8vw,6rem);line-height:0.95;
+      text-transform:uppercase;letter-spacing:-1px;margin-bottom:1.5rem;
+    ">
+      Run Your Crews.<br>
+      <span style="color:#F5C800">Not Spreadsheets.</span>
+    </h1>
+
+    <p style="
+      font-size:1.1rem;color:#aaa;max-width:560px;line-height:1.6;margin-bottom:3rem;
+    ">
+      FieldOps is a dispatcher tool built specifically for landscaping companies — track crews, equipment, jobs, and scheduling conflicts in one place. No spreadsheets. No sticky notes. No double-booking.
+    </p>
+
+    <div style="display:flex;gap:1rem;flex-wrap:wrap;justify-content:center">
+      <button onclick="enterDemo()" style="
+        background:#F5C800;color:#111;border:none;cursor:pointer;
+        font-family:'Barlow Condensed',sans-serif;font-weight:700;
+        font-size:1rem;letter-spacing:2px;text-transform:uppercase;
+        padding:1rem 2.5rem;transition:all 0.15s;
+      " onmouseover="this.style.background='#fff'" onmouseout="this.style.background='#F5C800'">
+        Try the Live Demo →
+      </button>
+      <a id="heroEmailBtn" href="#" style="
+        background:transparent;color:#F5C800;border:2px solid #F5C800;
+        font-family:'Barlow Condensed',sans-serif;font-weight:700;
+        font-size:1rem;letter-spacing:2px;text-transform:uppercase;
+        padding:1rem 2.5rem;text-decoration:none;display:inline-block;transition:all 0.15s;
+      " onmouseover="this.style.background='#F5C800';this.style.color='#111'" onmouseout="this.style.background='transparent';this.style.color='#F5C800'">
+        Get In Touch
+      </a>
+    </div>
+
+    <div style="margin-top:1.5rem;font-family:'Inconsolata',monospace;font-size:0.68rem;color:#444;letter-spacing:1px">
+      No signup required — demo runs entirely in your browser
+    </div>
+  </div>
+
+  <!-- FEATURE PILLS -->
+  <div style="
+    display:flex;flex-wrap:wrap;justify-content:center;gap:0.75rem;
+    padding:2rem 2rem 3rem;border-top:1px solid #1e1e1e;
+  ">
+    <div id="lp_f1" style="opacity:0;transform:translateY(12px);transition:all 0.4s ease 0.1s" class="feat-pill">📋 Job Scheduling & Conflict Detection</div>
+    <div id="lp_f2" style="opacity:0;transform:translateY(12px);transition:all 0.4s ease 0.2s" class="feat-pill">🚛 Equipment Tracking</div>
+    <div id="lp_f3" style="opacity:0;transform:translateY(12px);transition:all 0.4s ease 0.3s" class="feat-pill">👷 Crew Management</div>
+    <div id="lp_f4" style="opacity:0;transform:translateY(12px);transition:all 0.4s ease 0.4s" class="feat-pill">📅 Availability Blocking</div>
+    <div id="lp_f5" style="opacity:0;transform:translateY(12px);transition:all 0.4s ease 0.5s" class="feat-pill">⚠️ Overdue Job Alerts</div>
+    <div id="lp_f6" style="opacity:0;transform:translateY(12px);transition:all 0.4s ease 0.6s" class="feat-pill">🖨 Printable Dispatch Sheets</div>
+  </div>
+
+  <!-- FEATURE BREAKDOWN -->
+  <div style="background:#0d0d0d;border-top:1px solid #222;padding:5rem 2rem">
+    <div style="max-width:1100px;margin:0 auto">
+      <div style="font-family:'Inconsolata',monospace;font-size:0.65rem;letter-spacing:4px;text-transform:uppercase;color:#555;text-align:center;margin-bottom:3.5rem">What FieldOps Handles</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:0;border:1px solid #222">
+
+        <div class="feat-card" style="border-right:1px solid #222;border-bottom:1px solid #222">
+          <div class="feat-icon">🗂</div>
+          <div class="feat-title">Job Assignments</div>
+          <div class="feat-desc">Assign crews and equipment to jobs. Dates, addresses, client info, notes — all in one place. Automatic status tracking from Not Started → In Progress → Complete.</div>
+        </div>
+
+        <div class="feat-card" style="border-bottom:1px solid #222">
+          <div class="feat-icon">🚫</div>
+          <div class="feat-title">Conflict Detection</div>
+          <div class="feat-desc">Try to double-book a machine or truck — FieldOps blocks the save instantly and tells you exactly what's conflicting. No more showing up on-site without the equipment.</div>
+        </div>
+
+        <div class="feat-card" style="border-right:1px solid #222;border-bottom:1px solid #222">
+          <div class="feat-icon">🔧</div>
+          <div class="feat-title">Equipment Status</div>
+          <div class="feat-desc">Every piece of equipment shows its real-time status — Available, In Use, In Repair, or Crew Assigned. Know what's available before you schedule, not after.</div>
+        </div>
+
+        <div class="feat-card" style="border-bottom:1px solid #222">
+          <div class="feat-icon">📆</div>
+          <div class="feat-title">Crew Availability</div>
+          <div class="feat-desc">Block off dates for vacation, training, or sick time. FieldOps will warn you if you try to schedule a crew during blocked dates — before it causes a problem.</div>
+        </div>
+
+        <div class="feat-card" style="border-right:1px solid #222">
+          <div class="feat-icon">☀️</div>
+          <div class="feat-title">Today's Overview</div>
+          <div class="feat-desc">Open the app and immediately see every active job today, which crew is on it, what equipment is deployed, and what's sitting available.</div>
+        </div>
+
+        <div class="feat-card">
+          <div class="feat-icon">🖨</div>
+          <div class="feat-title">Dispatch Sheet</div>
+          <div class="feat-desc">One click generates a clean printable dispatch sheet for the day — crews, jobs, addresses, equipment, and any unavailability notes. Ready to hand to your foreman.</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div style="background:#111;border-top:4px solid #F5C800;padding:5rem 2rem;text-align:center">
+    <h2 style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:clamp(2rem,5vw,3.5rem);text-transform:uppercase;letter-spacing:1px;margin-bottom:1rem">
+      Does This Solve a Real Problem<br><span style="color:#F5C800">For Your Company?</span>
+    </h2>
+    <p style="color:#aaa;max-width:480px;margin:0 auto 2.5rem;line-height:1.6">
+      We're looking for landscaping companies to give us honest feedback on FieldOps before we build further. Takes 10 minutes — try the demo below and let us know what you think.
+    </p>
+    <div style="display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;margin-bottom:3rem">
+      <button onclick="enterDemo()" style="
+        background:#F5C800;color:#111;border:none;cursor:pointer;
+        font-family:'Barlow Condensed',sans-serif;font-weight:700;
+        font-size:1rem;letter-spacing:2px;text-transform:uppercase;
+        padding:1rem 2.5rem;transition:all 0.15s;
+      " onmouseover="this.style.background='#fff'" onmouseout="this.style.background='#F5C800'">
+        Try the Demo First →
+      </button>
+      <a id="ctaEmailBtn" href="#" style="
+        background:transparent;color:#F5C800;border:2px solid #F5C800;
+        font-family:'Barlow Condensed',sans-serif;font-weight:700;
+        font-size:1rem;letter-spacing:2px;text-transform:uppercase;
+        padding:1rem 2.5rem;text-decoration:none;display:inline-block;transition:all 0.15s;
+      " onmouseover="this.style.background='#F5C800';this.style.color='#111'" onmouseout="this.style.background='transparent';this.style.color='#F5C800'">
+        ✉ Send Us Feedback
+      </a>
+    </div>
+    <div style="font-family:'Inconsolata',monospace;font-size:0.65rem;color:#333;letter-spacing:1px">
+      No pressure. No sales pitch. Just honest feedback from people who'd actually use it.
+    </div>
+  </div>
+
+</div>
+
+<!-- DEMO SECTION LABEL -->
+<div id="demoAnchor" style="display:none;background:#111;border-top:4px solid #F5C800;border-bottom:4px solid #F5C800;padding:1rem 3rem;align-items:center;justify-content:space-between">
+  <div style="display:flex;align-items:center;gap:1rem">
+    <div style="background:#F5C800;width:5px;height:28px;flex-shrink:0"></div>
+    <div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1.1rem;letter-spacing:2px;text-transform:uppercase;color:#fff">Live Demo — Pre-loaded with sample data</div>
+      <div style="font-family:'Inconsolata',monospace;font-size:0.6rem;letter-spacing:2px;color:#555;text-transform:uppercase">Click around freely — nothing is saved permanently</div>
+    </div>
+  </div>
+  <button onclick="backToLanding()" style="
+    background:transparent;color:#F5C800;border:1px solid #333;cursor:pointer;
+    font-family:'Inconsolata',monospace;font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;
+    padding:0.5rem 1rem;transition:all 0.15s;
+  " onmouseover="this.style.borderColor='#F5C800'" onmouseout="this.style.borderColor='#333'">
+    ← Back to Overview
+  </button>
+</div>
+
+<style>
+  .feat-pill {
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    color: #ccc;
+    font-family: 'Inconsolata', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 1px;
+    padding: 0.5rem 1.1rem;
+  }
+  .feat-card {
+    padding: 2.2rem 2rem;
+    transition: background 0.15s;
+  }
+  .feat-card:hover { background: #111; }
+  .feat-icon { font-size: 1.6rem; margin-bottom: 0.75rem; }
+  .feat-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #fff;
+    margin-bottom: 0.5rem;
+  }
+  .feat-desc {
+    font-size: 0.85rem;
+    color: #888;
+    line-height: 1.6;
+  }
+</style>
+
+<script>
+  // Animate pills on load
+  window.addEventListener('load', () => {
+    [1,2,3,4,5,6].forEach(i => {
+      const el = document.getElementById('lp_f'+i);
+      if (el) { el.style.opacity='1'; el.style.transform='translateY(0)'; }
+    });
+    const email = 'benburdenie@gmail.com';
+    const subject = encodeURIComponent('FieldOps Feedback');
+    const body = encodeURIComponent("Hi,\n\nI tried the FieldOps demo and wanted to share some thoughts.\n\n[Your feedback here]\n\nCompany name:\nCrew size:\nWhat software (if any) do you currently use:\n\nThanks");
+    const mailtoLink = `mailto:${email}?subject=${subject}&body=${body}`;
+    ['heroEmailBtn','ctaEmailBtn'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.href = mailtoLink;
+    });
+  });
+
+  // defined globally so buttons can call them
+  window.enterDemo = function() {
+    document.getElementById('appShell').style.display = '';
+    document.getElementById('landingPage').style.display = 'none';
+    document.getElementById('demoAnchor').style.display = 'flex';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (typeof updateHome === 'function') updateHome();
+  };
+
+  window.backToLanding = function() {
+    document.getElementById('landingPage').style.display = 'flex';
+    document.getElementById('demoAnchor').style.display = 'none';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+</script>
+
+
+<div id="appShell" style="display:none">
+<header>
+  <div class="header-inner">
+    <div class="logo-block">
+      <div class="logo-accent"></div>
+      <div>
+        <div class="logo-text">Field<span>Ops</span></div>
+        <div class="logo-sub">Crew &amp; Equipment Manager</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:1rem">
+      <div class="header-date" id="headerDate"></div>
+      <button class="btn btn-sm" style="font-size:0.65rem;letter-spacing:1px;background:transparent;color:#F5C800;border-color:#F5C800" onclick="backToLanding()">← Back to Overview</button>
+    </div>
+  </div>
+</header>
+
+<div class="main-view">
+
+  <!-- HOME -->
+  <div id="homeView">
+    <div id="returningSoonStrip" class="returning-strip">
+      <div class="returning-strip-title">🔔 Equipment Returning Soon</div>
+      <div id="returningSoonList"></div>
+    </div>
+    <div id="overdueBanner" class="overdue-banner">
+      <div class="overdue-banner-title">⚠ Overdue Jobs</div>
+      <div id="overdueList"></div>
+    </div>
+    <div class="section-label">At a glance</div>
+    <div class="stat-strip">
+      <div class="stat-item"><div class="stat-num" id="statCrews">0</div><div class="stat-label">Crews</div></div>
+      <div class="stat-item"><div class="stat-num" id="statWorkers">0</div><div class="stat-label">Workers</div></div>
+      <div class="stat-item"><div class="stat-num" id="statEquip">0</div><div class="stat-label">Equipment</div></div>
+      <div class="stat-item"><div class="stat-num" id="statUpcoming">0</div><div class="stat-label">Upcoming Jobs</div></div>
+      <div class="stat-item"><div class="stat-num" id="statActive">0</div><div class="stat-label">Active Jobs</div></div>
+      <div class="stat-item"><div class="stat-num" id="statAvail">0</div><div class="stat-label">Available Units</div></div>
+    </div>
+    <div class="today-strip" id="todayStrip">
+      <div class="today-strip-header">
+        <div class="today-strip-title">Today's Overview</div>
+        <button class="btn btn-sm" style="background:var(--yellow);color:var(--black);border-color:var(--yellow-dark);font-size:0.72rem" onclick="openDispatch()">🖨 Dispatch Sheet</button>
+      </div>
+      <div class="today-strip-body" id="todayBody"></div>
+    </div>
+    <div class="section-label">Select view</div>
+    <div class="big-toggle">
+      <div class="toggle-card" onclick="showJobsPanel()" style="border-right:2px solid var(--black)">
+        <div class="tc-num">01</div>
+        <div class="tc-title">Jobs</div>
+        <div class="tc-desc">Schedule jobs, assign crews &amp; equipment</div>
+        <div class="tc-arrow">→</div>
+      </div>
+      <div class="toggle-card" onclick="showCrewPanel()">
+        <div class="tc-num">02</div>
+        <div class="tc-title">Crews</div>
+        <div class="tc-desc">Manage crews &amp; permanent equipment</div>
+        <div class="tc-arrow">→</div>
+      </div>
+      <div class="toggle-card" onclick="showEquipmentPanel()" style="border-top:2px solid var(--black);border-right:2px solid var(--black)">
+        <div class="tc-num">03</div>
+        <div class="tc-title">Equipment</div>
+        <div class="tc-desc">Trucks, trailers &amp; machines</div>
+        <div class="tc-arrow">→</div>
+      </div>
+      <div class="toggle-card" onclick="showWorkersPanel()" style="border-top:2px solid var(--black)">
+        <div class="tc-num">04</div>
+        <div class="tc-title">Workers</div>
+        <div class="tc-desc">Personnel, roles &amp; crew assignments</div>
+        <div class="tc-arrow">→</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JOBS -->
+  <div id="jobsPanel" class="panel">
+    <button class="back-btn" onclick="goHome()">← Back to home</button>
+    <div class="toolbar">
+      <div class="toolbar-title">Jobs</div>
+      <button class="btn btn-primary" onclick="openAddAssignment(null)">+ Schedule Job</button>
+    </div>
+    <div class="jobs-filter-bar">
+      <button class="jobs-filter-btn active" onclick="filterJobs('all',this)">All</button>
+      <button class="jobs-filter-btn" onclick="filterJobs('upcoming',this)">Upcoming</button>
+      <button class="jobs-filter-btn" onclick="filterJobs('active',this)">Active</button>
+      <button class="jobs-filter-btn" onclick="filterJobs('complete',this)">Complete</button>
+      <button class="jobs-filter-btn" onclick="filterJobs('overdue',this)">Overdue</button>
+    </div>
+    <div class="cards-grid" id="jobsGrid"></div>
+  </div>
+
+  <!-- CREWS -->
+  <div id="crewPanel" class="panel">
+    <button class="back-btn" onclick="goHome()">← Back to home</button>
+    <div class="toolbar">
+      <div class="toolbar-title">Crews</div>
+      <button class="btn btn-primary" onclick="openAddCrew()">+ Add Crew</button>
+    </div>
+    <div class="cards-grid" id="crewGrid"></div>
+  </div>
+
+  <!-- WORKERS -->
+  <div id="workersPanel" class="panel">
+    <button class="back-btn" onclick="goHome()">← Back to home</button>
+    <div class="toolbar">
+      <div class="toolbar-title">Workers</div>
+      <button class="btn btn-primary" onclick="openAddWorker()">+ Add Worker</button>
+    </div>
+    <div class="cat-tabs">
+      <button class="cat-tab active" onclick="filterWorkers('all',this)">All</button>
+      <button class="cat-tab" onclick="filterWorkers('assigned',this)">Assigned</button>
+      <button class="cat-tab" onclick="filterWorkers('unassigned',this)">Unassigned</button>
+    </div>
+    <div class="cards-grid" id="workersGrid"></div>
+  </div>
+
+  <!-- EQUIPMENT -->
+  <div id="equipmentPanel" class="panel">
+    <button class="back-btn" onclick="goHome()">← Back to home</button>
+    <div class="toolbar">
+      <div class="toolbar-title">Equipment</div>
+      <button class="btn btn-primary" onclick="openAddEquipment()">+ Add Equipment</button>
+    </div>
+    <div class="cat-tabs">
+      <button class="cat-tab active" onclick="filterEquipment('all',this)">All</button>
+      <button class="cat-tab" onclick="filterEquipment('truck',this)">Trucks</button>
+      <button class="cat-tab" onclick="filterEquipment('trailer_flat',this)">Flat Decks</button>
+      <button class="cat-tab" onclick="filterEquipment('trailer_dump',this)">Dump Trailers</button>
+      <button class="cat-tab" onclick="filterEquipment('trailer_equipment',this)">Equip. Trailers</button>
+      <button class="cat-tab" onclick="filterEquipment('machine',this)">Machines</button>
+    </div>
+    <div class="cards-grid" id="equipmentGrid"></div>
+  </div>
+</div>
+
+<!-- ══════ MODALS ══════ -->
+
+<!-- Crew Detail -->
+<div class="overlay" id="crewDetailOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="crewDetailTitle">Crew Detail</div>
+      <button class="modal-close" onclick="closeOverlay('crewDetailOverlay')">✕</button>
+    </div>
+    <div class="modal-body" id="crewDetailContent"></div>
+  </div>
+</div>
+
+<!-- Equipment Detail -->
+<div class="overlay" id="eqDetailOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="eqDetailTitle">Equipment Detail</div>
+      <button class="modal-close" onclick="closeOverlay('eqDetailOverlay')">✕</button>
+    </div>
+    <div class="modal-body" id="eqDetailContent"></div>
+  </div>
+</div>
+
+<!-- Add/Edit Crew -->
+<div class="overlay" id="crewFormOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="crewFormTitle">Add Crew</div>
+      <button class="modal-close" onclick="closeOverlay('crewFormOverlay')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-field span2"><label>Crew Name</label><input type="text" id="cf_name" placeholder="e.g. Alpha Team"></div>
+        <div class="form-field"><label>Foreman / Lead</label><input type="text" id="cf_foreman" placeholder="Full name"></div>
+        <div class="form-field"><label>Headcount (approx.)</label><input type="number" id="cf_workers" min="1" placeholder="4"></div>
+        <div class="form-field span2">
+          <label>Add Worker</label>
+          <div style="display:flex;gap:0.5rem">
+            <input type="text" id="cf_worker_name" placeholder="Worker name" style="flex:1">
+            <select id="cf_worker_role" style="flex:0 0 140px">
+              <option value="Labourer">Labourer</option>
+              <option value="Operator">Operator</option>
+              <option value="Driver">Driver</option>
+              <option value="Lead Hand">Lead Hand</option>
+            </select>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="addWorkerToForm()" style="white-space:nowrap">+ Add</button>
+          </div>
+        </div>
+        <div class="form-field span2">
+          <div id="cf_worker_list" class="worker-list"></div>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-secondary" onclick="closeOverlay('crewFormOverlay')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveCrew()">Save Crew</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Crew Availability -->
+<div class="overlay" id="availFormOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Mark Unavailable</div>
+      <button class="modal-close" onclick="closeOverlay('availFormOverlay')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="info-box">Block off dates when this crew is unavailable — vacation, training, etc. This will show as a warning when scheduling jobs.</div>
+      <div class="form-grid">
+        <div class="form-field"><label>From</label><input type="date" id="av_start"></div>
+        <div class="form-field"><label>To</label><input type="date" id="av_end"></div>
+        <div class="form-field span2"><label>Reason</label><input type="text" id="av_reason" placeholder="e.g. Vacation, Training day, Sick"></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-secondary" onclick="closeOverlay('availFormOverlay')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveAvailBlock()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Assign Permanent Equipment to Crew -->
+<div class="overlay" id="permEqOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Assign Permanent Equipment</div>
+      <button class="modal-close" onclick="closeOverlay('permEqOverlay')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="info-box">This equipment will be permanently assigned to this crew and automatically included on all their jobs until manually removed.</div>
+      <div class="form-field">
+        <label>Select Equipment to Add</label>
+        <select id="permEqSelect" multiple style="height:140px"></select>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-secondary" onclick="closeOverlay('permEqOverlay')">Cancel</button>
+        <button class="btn btn-primary" onclick="savePermEq()">Assign Equipment</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Equipment -->
+<div class="overlay" id="eqFormOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="eqFormTitle">Add Equipment</div>
+      <button class="modal-close" onclick="closeOverlay('eqFormOverlay')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-field span2"><label>Name / Identifier</label><input type="text" id="ef_name" placeholder="e.g. F-250 #3 or CAT Skid Steer"></div>
+        <div class="form-field">
+          <label>Category</label>
+          <select id="ef_cat">
+            <option value="truck">Truck</option>
+            <option value="trailer_flat">Flat Deck Trailer</option>
+            <option value="trailer_dump">Dump Trailer</option>
+            <option value="trailer_equipment">Equipment Trailer</option>
+            <option value="machine">Machine</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Status</label>
+          <select id="ef_status">
+            <option value="available">Available</option>
+            <option value="inuse">In Use</option>
+            <option value="repair">In Repair / Down</option>
+          </select>
+        </div>
+        <div class="form-field span2"><label>Notes</label><textarea id="ef_notes" placeholder="Any notes about this equipment..."></textarea></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-secondary" onclick="closeOverlay('eqFormOverlay')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveEquipment()">Save Equipment</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Job Detail -->
+<div class="overlay" id="jobDetailOverlay">
+  <div class="modal modal-wide">
+    <div class="modal-header">
+      <div class="modal-title" id="jobDetailTitle">Job Detail</div>
+      <button class="modal-close" onclick="closeOverlay('jobDetailOverlay')">✕</button>
+    </div>
+    <div class="modal-body" id="jobDetailContent"></div>
+  </div>
+</div>
+
+<!-- Add Job Assignment -->
+<div class="overlay" id="assignFormOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="assignFormTitle">Schedule Job</div>
+      <button class="modal-close" onclick="closeOverlay('assignFormOverlay')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="conflict-alert" id="conflictAlert"></div>
+      <div id="permEqNotice" class="info-box" style="display:none"></div>
+      <div class="form-grid">
+        <div class="form-field span2"><label>Job Name</label><input type="text" id="af_job" placeholder="e.g. Smith Residence — Lawn Renovation"></div>
+        <div class="form-field span2"><label>Job Address / Location</label><input type="text" id="af_address" placeholder="123 Main St, City"></div>
+        <div class="form-field"><label>Client Name</label><input type="text" id="af_client" placeholder="e.g. John Smith"></div>
+        <div class="form-field"><label>Client Phone</label><input type="tel" id="af_phone" placeholder="e.g. 250-555-0100"></div>
+        <div class="form-field span2"><label>Client Email</label><input type="email" id="af_email" placeholder="e.g. john@example.com"></div>
+        <div class="form-field"><label>Start Date</label><input type="date" id="af_start" onchange="onAssignDateChange()"></div>
+        <div class="form-field"><label>Expected End Date</label><input type="date" id="af_end" onchange="onAssignDateChange()"></div>
+        <div class="form-field span2">
+          <label>Job Status</label>
+          <select id="af_status">
+            <option value="notstarted">Not Started</option>
+            <option value="inprogress">In Progress</option>
+            <option value="complete">Complete</option>
+          </select>
+        </div>
+        <div class="form-field span2"><label>Assigned Crew</label><select id="af_crew" onchange="onCrewChange()"><option value="">— None —</option></select></div>
+        <div class="form-field span2">
+          <label>Additional Equipment to Book</label>
+          <select id="af_equipment" multiple style="height:110px" onchange="checkConflicts()"></select>
+          <span style="font-family:'Inconsolata',monospace;font-size:0.65rem;color:var(--mid);margin-top:4px">Hold Ctrl/⌘ to select multiple. Permanent crew equipment is added automatically.</span>
+        </div>
+        <div class="form-field span2"><label>Notes / Special Instructions</label><textarea id="af_notes" placeholder="Gate codes, hazards, special instructions..."></textarea></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-secondary" onclick="closeOverlay('assignFormOverlay')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveAssignment()">Save Assignment</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Book Equipment (from crew detail) -->
+<div class="overlay" id="bookingFormOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Book Equipment</div>
+      <button class="modal-close" onclick="closeOverlay('bookingFormOverlay')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="conflict-alert" id="bookConflictAlert"></div>
+      <div class="form-grid">
+        <div class="form-field span2">
+          <label>Equipment</label>
+          <select id="bk_equipment" multiple style="height:120px" onchange="checkBookingConflicts()">
+          </select>
+          <span style="font-family:'Inconsolata',monospace;font-size:0.65rem;color:var(--mid);margin-top:4px">Hold Ctrl/⌘ to select multiple.</span>
+        </div>
+        <div class="form-field span2">
+          <label>Book For</label>
+          <div class="radio-group">
+            <div class="radio-opt"><input type="radio" name="bk_scope" id="bk_full" value="full" checked onchange="toggleBookingDates()"><label for="bk_full">Entire Job</label></div>
+            <div class="radio-opt"><input type="radio" name="bk_scope" id="bk_custom" value="custom" onchange="toggleBookingDates()"><label for="bk_custom">Custom Dates</label></div>
+          </div>
+        </div>
+        <div id="bk_custom_dates" class="form-field span2" style="display:none">
+          <div class="form-grid">
+            <div class="form-field"><label>From</label><input type="date" id="bk_start" onchange="checkBookingConflicts()"></div>
+            <div class="form-field"><label>To</label><input type="date" id="bk_end" onchange="checkBookingConflicts()"></div>
+          </div>
+        </div>
+        <div class="form-field span2"><label>Notes</label><textarea id="bk_notes" placeholder="Reason for booking, delivery notes, etc..."></textarea></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-secondary" onclick="closeOverlay('bookingFormOverlay')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveBooking()">Confirm Booking</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Book Equipment from Equipment Page -->
+<div class="overlay" id="eqBookingFormOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="eqBookingTitle">Book Equipment</div>
+      <button class="modal-close" onclick="closeOverlay('eqBookingFormOverlay')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="conflict-alert" id="eqBookConflictAlert"></div>
+      <div class="form-grid">
+        <div class="form-field span2">
+          <label>Crew</label>
+          <select id="ebk_crew" onchange="onEqBookCrewChange()"><option value="">— Select Crew —</option></select>
+        </div>
+        <div class="form-field span2">
+          <label>Link to Job (optional)</label>
+          <select id="ebk_job"><option value="">— No specific job —</option></select>
+        </div>
+        <div class="form-field span2">
+          <label>Book For</label>
+          <div class="radio-group">
+            <div class="radio-opt"><input type="radio" name="ebk_scope" id="ebk_full" value="full" checked onchange="toggleEqBookingDates()"><label for="ebk_full">Entire Job</label></div>
+            <div class="radio-opt"><input type="radio" name="ebk_scope" id="ebk_custom" value="custom" onchange="toggleEqBookingDates()"><label for="ebk_custom">Custom Dates</label></div>
+          </div>
+        </div>
+        <div id="ebk_custom_dates" class="form-field span2" style="display:none">
+          <div class="form-grid">
+            <div class="form-field"><label>From</label><input type="date" id="ebk_start" onchange="checkEqBookConflicts()"></div>
+            <div class="form-field"><label>To</label><input type="date" id="ebk_end" onchange="checkEqBookConflicts()"></div>
+          </div>
+        </div>
+        <div class="form-field span2"><label>Notes</label><textarea id="ebk_notes" placeholder="Reason for booking, delivery notes, etc..."></textarea></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-secondary" onclick="closeOverlay('eqBookingFormOverlay')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveEqBooking()">Confirm Booking</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Worker -->
+<div class="overlay" id="workerFormOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="workerFormTitle">Add Worker</div>
+      <button class="modal-close" onclick="closeOverlay('workerFormOverlay')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-field span2"><label>Full Name</label><input type="text" id="wf_name" placeholder="e.g. Tyler Brooks"></div>
+        <div class="form-field">
+          <label>Role</label>
+          <select id="wf_role">
+            <option value="Labourer">Labourer</option>
+            <option value="Operator">Operator</option>
+            <option value="Driver">Driver</option>
+            <option value="Lead Hand">Lead Hand</option>
+            <option value="Foreman">Foreman</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Assigned Crew</label>
+          <select id="wf_crew"><option value="">— Unassigned —</option></select>
+        </div>
+        <div class="form-field span2"><label>Notes</label><input type="text" id="wf_notes" placeholder="Certifications, license class, etc."></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-secondary" onclick="closeOverlay('workerFormOverlay')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveWorker()">Save Worker</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="dispatchPrintArea">
+  <div class="dispatch-page" id="dispatchContent"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════
+// STATE
+// ═══════════════════════════════════
+let state = {
+  crews: [],        // { id, name, foreman, workers, permEquipmentIds[] }
+  equipment: [],    // { id, name, cat, status, notes }
+  assignments: [],  // { id, job, address, start, end, crewId, equipmentIds[], notes }
+  bookings: [],     // { id, crewId, assignmentId, equipmentIds[], start, end, notes, scope:'full'|'custom' }
+  editingCrewId: null,
+  editingEqId: null,
+  currentEqFilter: 'all',
+  permEqCrewId: null,
+  bookingAssignmentId: null,
+  bookingCrewId: null,
+};
+
+function loadState() {
+  const s = localStorage.getItem('fieldops_v4');
+  if (s) { try { Object.assign(state, JSON.parse(s)); } catch(e){} }
+  // migrate old data
+  state.crews.forEach(c => { if (!c.permEquipmentIds) c.permEquipmentIds = []; });
+  if (!state.bookings) state.bookings = [];
+  state.assignments.forEach(a => {
+    if (!a.status) a.status = 'notstarted';
+    if (!a.client) a.client = '';
+    if (!a.phone) a.phone = '';
+    if (!a.email) a.email = '';
+  });
+  state.crews.forEach(c => {
+    if (!c.workers_list) c.workers_list = [];
+    if (!c.availability) c.availability = [];
+  });
+  // Migrate: build global workers array from crews if not yet present
+  if (!state.workers) {
+    state.workers = [];
+    state.crews.forEach(c => {
+      (c.workers_list || []).forEach(w => {
+        if (!state.workers.find(x => x.id === w.id)) {
+          state.workers.push({ id: w.id, name: w.name, role: w.role, crewId: c.id, notes: '' });
+        }
+      });
+    });
+  }
+  if (!state.crews.length && !state.equipment.length) seedData();
+}
+
+function saveState() { localStorage.setItem('fieldops_v4', JSON.stringify(state)); }
+function resetAppData() {
+  if (!confirm('Reset all data and reload with demo data? This cannot be undone.')) return;
+  localStorage.removeItem('fieldops_v4');
+  location.reload();
+}
+function uid() { return Math.random().toString(36).slice(2,10); }
+function todayStr() { return new Date().toISOString().split('T')[0]; }
+function openOverlay(id) { document.getElementById(id).classList.add('open'); }
+function closeOverlay(id) { document.getElementById(id).classList.remove('open'); }
+function esc(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function seedData() {
+  state.crews = [
+    { id: uid(), name: 'Alpha Team', foreman: 'Jake Morrison', workers: 4, permEquipmentIds: [], workers_list: [
+        { id: uid(), name: 'Tyler Brooks', role: 'Lead Hand' },
+        { id: uid(), name: 'Dani Reyes', role: 'Operator' },
+        { id: uid(), name: 'Sam Kowalski', role: 'Labourer' },
+    ], availability: [] },
+    { id: uid(), name: 'Bravo Squad', foreman: 'Maria Santos', workers: 3, permEquipmentIds: [], workers_list: [
+        { id: uid(), name: 'Chris Nguyen', role: 'Driver' },
+        { id: uid(), name: 'Pat Ellis', role: 'Labourer' },
+    ], availability: [] },
+  ];
+  state.equipment = [
+    { id: uid(), name: 'F-350 #1', cat: 'truck', status: 'available', notes: 'Main towing truck — Alpha perm.' },
+    { id: uid(), name: 'F-250 #2', cat: 'truck', status: 'available', notes: '' },
+    { id: uid(), name: 'Flat Deck #1', cat: 'trailer_flat', status: 'available', notes: '20ft deck' },
+    { id: uid(), name: 'Dump Trailer #1', cat: 'trailer_dump', status: 'available', notes: '10 yard' },
+    { id: uid(), name: 'Equipment Trailer #1', cat: 'trailer_equipment', status: 'available', notes: 'Ramps included' },
+    { id: uid(), name: 'CAT Skid Steer', cat: 'machine', status: 'repair', notes: 'Hydraulic issue — est. back Friday' },
+    { id: uid(), name: 'Zero-Turn Mower', cat: 'machine', status: 'available', notes: '' },
+  ];
+  // F-350 #1 permanently with Alpha Team only
+  state.crews[0].permEquipmentIds = [state.equipment[0].id];
+  // F-250 #2 permanently with Bravo Squad only
+  state.crews[1].permEquipmentIds = [state.equipment[1].id];
+
+  const fmt = d => new Date(d).toISOString().split('T')[0];
+  const addDays = (n) => { const d = new Date(); d.setDate(d.getDate()+n); return fmt(d); };
+  const today = fmt(new Date());
+
+  state.assignments = [
+    {
+      id: uid(), job: 'Riverside Park Renovation', address: '100 Riverside Dr',
+      client: 'City of Kamloops', phone: '250-828-3461', email: 'parks@kamloops.ca',
+      start: today, end: addDays(5),
+      crewId: state.crews[0].id,
+      // Alpha's perm F-350 #1 auto-included; add Flat Deck + Dump Trailer directly
+      equipmentIds: [state.equipment[2].id, state.equipment[3].id],
+      notes: 'Gate code: 1234. Watch for irrigation lines.',
+      status: 'inprogress'
+    },
+    {
+      id: uid(), job: 'Hillside Estates — Spring Cleanup', address: '45 Hillside Blvd',
+      client: 'Hillside HOA', phone: '250-555-0192', email: '',
+      start: today, end: addDays(2),
+      crewId: state.crews[1].id,
+      // Bravo's perm F-250 #2 auto-included; add Equipment Trailer directly
+      equipmentIds: [state.equipment[4].id],
+      notes: 'Access via rear gate. Debris to be hauled to transfer station.',
+      status: 'inprogress'
+    },
+  ];
+  state.assignments.push({
+    id: uid(), job: 'Thompson Backyard — Hardscaping', address: '22 Maple Cres',
+    client: 'Dave Thompson', phone: '250-555-0241', email: 'dave.t@email.com',
+    start: addDays(4), end: addDays(9),
+    crewId: state.crews[0].id,
+    equipmentIds: [state.equipment[3].id, state.equipment[4].id],
+    notes: 'Customer wants weekly progress updates. Dog on property — keep gate closed.',
+    status: 'notstarted'
+  });
+
+  // Build global workers from crew workers_lists
+  state.workers = [];
+  state.crews.forEach(c => {
+    (c.workers_list||[]).forEach(w => {
+      state.workers.push({ id: w.id, name: w.name, role: w.role, crewId: c.id, notes: '' });
+    });
+  });
+  saveState();
+}
+
+const catLabels = { truck:'Truck', trailer_flat:'Flat Deck', trailer_dump:'Dump Trailer', trailer_equipment:'Equipment Trailer', machine:'Machine' };
+
+// ═══════════════════════════════════
+// DERIVED HELPERS
+// ═══════════════════════════════════
+
+// All equipment IDs actively in use on a given date (assignments + bookings + perm on active jobs)
+function getInUseEqIds(dateStr) {
+  const inUse = new Set();
+  // from assignments (non-perm extra equipment)
+  state.assignments.forEach(a => {
+    if (a.start <= dateStr && a.end >= dateStr) {
+      a.equipmentIds.forEach(id => inUse.add(id));
+      // permanent crew equipment auto included
+      const crew = state.crews.find(c => c.id === a.crewId);
+      if (crew) crew.permEquipmentIds.forEach(id => inUse.add(id));
+    }
+  });
+  // from standalone bookings
+  state.bookings.forEach(b => {
+    if (b.start <= dateStr && b.end >= dateStr) {
+      b.equipmentIds.forEach(id => inUse.add(id));
+    }
+  });
+  return inUse;
+}
+
+// Get effective status of equipment on today
+function getEqStatus(eq) {
+  if (eq.status === 'repair') return 'repair';
+  const today = todayStr();
+  const inUse = getInUseEqIds(today);
+  if (inUse.has(eq.id)) return 'inuse';
+  // check if permanently assigned to a crew (even without active job)
+  const permCrew = state.crews.find(c => c.permEquipmentIds.includes(eq.id));
+  if (permCrew) return 'assigned';
+  return 'available';
+}
+
+// Get active assignment for an equipment item
+function getEqActiveContext(eqId) {
+  const today = todayStr();
+  // Check assignments
+  for (const a of state.assignments) {
+    if (a.start > today || a.end < today) continue;
+    const crew = state.crews.find(c => c.id === a.crewId);
+    const permMatch = crew && crew.permEquipmentIds.includes(eqId);
+    const directMatch = a.equipmentIds.includes(eqId);
+    if (permMatch || directMatch) return { type: 'assignment', assignment: a, crew };
+  }
+  // Check standalone bookings
+  for (const b of state.bookings) {
+    if (b.start > today || b.end < today) continue;
+    if (b.equipmentIds.includes(eqId)) {
+      const crew = state.crews.find(c => c.id === b.crewId);
+      const assign = state.assignments.find(a => a.id === b.assignmentId);
+      return { type: 'booking', booking: b, crew, assignment: assign };
+    }
+  }
+  return null;
+}
+
+// Get all equipment IDs for an assignment (perm + extra + bookings)
+function getAssignmentAllEq(assignment) {
+  const ids = new Set(assignment.equipmentIds);
+  const crew = state.crews.find(c => c.id === assignment.crewId);
+  if (crew) crew.permEquipmentIds.forEach(id => ids.add(id));
+  state.bookings.forEach(b => {
+    if (b.assignmentId === assignment.id) b.equipmentIds.forEach(id => ids.add(id));
+  });
+  return [...ids];
+}
+
+// Check conflict for a list of eqIds over a date range, optionally excluding an assignment
+function findConflicts(eqIds, start, end, excludeAssignId) {
+  const conflicts = [];
+  eqIds.forEach(eqId => {
+    // Check assignments
+    state.assignments.forEach(a => {
+      if (a.id === excludeAssignId) return;
+      if (a.end < start || a.start > end) return;
+      const allEq = getAssignmentAllEq(a);
+      if (!allEq.includes(eqId)) return;
+      const eq = state.equipment.find(e => e.id === eqId);
+      conflicts.push(`⚠ ${esc(eq?.name||eqId)} is booked on "${esc(a.job)}" (${a.start} → ${a.end})`);
+    });
+    // Check standalone bookings
+    state.bookings.forEach(b => {
+      if (b.assignmentId === excludeAssignId) return;
+      if (b.end < start || b.start > end) return;
+      if (!b.equipmentIds.includes(eqId)) return;
+      const eq = state.equipment.find(e => e.id === eqId);
+      const crew = state.crews.find(c => c.id === b.crewId);
+      conflicts.push(`⚠ ${esc(eq?.name||eqId)} is booked by ${esc(crew?.name||'a crew')} (${b.start} → ${b.end})`);
+    });
+  });
+  return conflicts;
+}
+
+// ═══════════════════════════════════
+// NAV
+// ═══════════════════════════════════
+function goHome() {
+  document.getElementById('homeView').style.display = '';
+  document.getElementById('crewPanel').classList.remove('active');
+  document.getElementById('equipmentPanel').classList.remove('active');
+  updateHome();
+}
+
+function showJobsPanel() {
+  document.getElementById('homeView').style.display = 'none';
+  document.getElementById('jobsPanel').classList.add('active');
+  document.getElementById('crewPanel').classList.remove('active');
+  document.getElementById('equipmentPanel').classList.remove('active');
+  document.getElementById('workersPanel').classList.remove('active');
+  renderJobs();
+}
+
+function showWorkersPanel() {
+  document.getElementById('homeView').style.display = 'none';
+  document.getElementById('workersPanel').classList.add('active');
+  document.getElementById('jobsPanel').classList.remove('active');
+  document.getElementById('crewPanel').classList.remove('active');
+  document.getElementById('equipmentPanel').classList.remove('active');
+  renderWorkers();
+}
+
+function showCrewPanel() {
+  document.getElementById('homeView').style.display = 'none';
+  document.getElementById('crewPanel').classList.add('active');
+  document.getElementById('jobsPanel').classList.remove('active');
+  document.getElementById('equipmentPanel').classList.remove('active');
+  document.getElementById('workersPanel').classList.remove('active');
+  renderCrews();
+}
+
+function showEquipmentPanel() {
+  document.getElementById('homeView').style.display = 'none';
+  document.getElementById('equipmentPanel').classList.add('active');
+  document.getElementById('jobsPanel').classList.remove('active');
+  document.getElementById('crewPanel').classList.remove('active');
+  document.getElementById('workersPanel').classList.remove('active');
+  renderEquipment();
+}
+
+function updateStats() {
+  const today = todayStr();
+  const activeAssigns = state.assignments.filter(a => a.start<=today && a.end>=today);
+  const inUseIds = getInUseEqIds(today);
+  const avail = state.equipment.filter(e => !inUseIds.has(e.id) && e.status !== 'repair').length;
+  const upcomingCount = state.assignments.filter(a=>a.start>today&&a.status!=='complete').length;
+  document.getElementById('statCrews').textContent = state.crews.length;
+  document.getElementById('statWorkers').textContent = (state.workers||[]).length;
+  document.getElementById('statUpcoming').textContent = upcomingCount;
+  document.getElementById('statEquip').textContent = state.equipment.length;
+  document.getElementById('statActive').textContent = activeAssigns.length;
+  document.getElementById('statAvail').textContent = avail;
+}
+
+function getJobStatus(a) {
+  const today = todayStr();
+  if (a.status === 'complete') return 'complete';
+  if (a.end < today && a.status !== 'complete') return 'overdue';
+  if (a.status === 'inprogress') return 'inprogress';
+  if (a.start <= today && a.end >= today && (!a.status || a.status === 'notstarted')) return 'inprogress';
+  return a.status || 'notstarted';
+}
+
+function jobStatusLabel(s) {
+  return { notstarted:'Not Started', inprogress:'In Progress', complete:'Complete', overdue:'Overdue' }[s] || s;
+}
+
+function jobStatusClass(s) {
+  return { notstarted:'job-status-notstarted', inprogress:'job-status-inprogress', complete:'job-status-complete', overdue:'job-status-overdue' }[s] || '';
+}
+
+function updateHome() {
+  updateStats();
+  const today = todayStr();
+
+  // ── Returning soon strip ──
+  const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate()+1);
+  const dayAfter = new Date(); dayAfter.setDate(dayAfter.getDate()+2);
+  const tomorrowStr = tomorrow.toISOString().split('T')[0];
+  const dayAfterStr = dayAfter.toISOString().split('T')[0];
+  const returningItems = [];
+  state.bookings.forEach(b => {
+    if (b.end >= today && b.end <= dayAfterStr) {
+      b.equipmentIds.forEach(eqId => {
+        const eq = state.equipment.find(e=>e.id===eqId);
+        const crew = state.crews.find(c=>c.id===b.crewId);
+        if (eq) returningItems.push(`· ${esc(eq.name)} returns ${b.end===today?'today':b.end===tomorrowStr?'tomorrow':b.end}${crew?' ('+esc(crew.name)+')':''}`);
+      });
+    }
+  });
+  // Also check assignments ending in 1-2 days
+  state.assignments.filter(a=>a.end>=today&&a.end<=dayAfterStr&&a.status!=='complete').forEach(a=>{
+    const crew = state.crews.find(c=>c.id===a.crewId);
+    const allEq = getAssignmentAllEq(a);
+    allEq.forEach(eqId=>{
+      const eq=state.equipment.find(e=>e.id===eqId);
+      if(eq) returningItems.push(`· ${esc(eq.name)} frees up ${a.end===today?'today':a.end===tomorrowStr?'tomorrow':a.end} — job: ${esc(a.job)}${crew?' ('+esc(crew.name)+')':''}`);
+    });
+  });
+  const retStrip = document.getElementById('returningSoonStrip');
+  const retList = document.getElementById('returningSoonList');
+  if (returningItems.length) {
+    retList.innerHTML = [...new Set(returningItems)].map(i=>`<div class="returning-item">${i}</div>`).join('');
+    retStrip.classList.add('visible');
+  } else {
+    retStrip.classList.remove('visible');
+  }
+
+  // ── Overdue banner ──
+  const overdue = state.assignments.filter(a => a.end < today && a.status !== 'complete');
+  const banner = document.getElementById('overdueBanner');
+  const list = document.getElementById('overdueList');
+  if (overdue.length) {
+    list.innerHTML = overdue.map(a => {
+      const crew = state.crews.find(c=>c.id===a.crewId);
+      return `<div class="overdue-banner-item">· ${esc(a.job)} — ended ${a.end}${crew?' · '+esc(crew.name):''} <button class="btn btn-sm" style="margin-left:8px;background:var(--red);color:#fff;border-color:var(--red);font-size:0.65rem;padding:1px 6px" onclick="markJobComplete('${a.id}')">Mark Complete</button></div>`;
+    }).join('');
+    banner.classList.add('visible');
+  } else {
+    banner.classList.remove('visible');
+  }
+
+  // ── Today strip ──
+  const activeJobs = state.assignments.filter(a => a.start<=today && a.end>=today && a.status!=='complete');
+  const inUseIds = getInUseEqIds(today);
+  const freeEq = state.equipment.filter(e => !inUseIds.has(e.id) && e.status !== 'repair');
+  const activeCrewIds = new Set(activeJobs.map(a=>a.crewId).filter(Boolean));
+
+  let todayHtml = '';
+
+  if (!activeJobs.length && !overdue.length) {
+    todayHtml = '<div class="today-item" style="color:var(--mid)">No active jobs today.</div>';
+  } else {
+    activeJobs.forEach(a => {
+      const crew = state.crews.find(c=>c.id===a.crewId);
+      const allEq = getAssignmentAllEq(a);
+      const eqNames = allEq.map(id=>{ const e=state.equipment.find(x=>x.id===id); return e?esc(e.name):null; }).filter(Boolean);
+      const st = getJobStatus(a);
+      todayHtml += `<div class="today-item">
+        <strong>${esc(a.job)}</strong>
+        ${crew?`👷 ${esc(crew.name)}`:'No crew'}<br>
+        ${eqNames.length?`🔧 ${eqNames.join(', ')}<br>`:''}
+        📍 ${esc(a.address)||'No address'} &nbsp;<span class="job-status-badge ${jobStatusClass(st)}">${jobStatusLabel(st)}</span>
+      </div>`;
+    });
+  }
+
+  if (freeEq.length) {
+    todayHtml += `<div class="today-item"><strong>${freeEq.length} Unit${freeEq.length>1?'s':''} Free</strong>${freeEq.map(e=>esc(e.name)).join('<br>')}</div>`;
+  }
+
+  document.getElementById('todayBody').innerHTML = todayHtml;
+}
+
+function markJobComplete(assignId) {
+  const a = state.assignments.find(x=>x.id===assignId);
+  if (a) { a.status = 'complete'; saveState(); updateHome(); renderCrews(); }
+}
+
+// ═══════════════════════════════════
+// CREWS
+// ═══════════════════════════════════
+function renderCrews() {
+  const grid = document.getElementById('crewGrid');
+  if (!state.crews.length) { grid.innerHTML=`<div class="empty-state"><span class="e-icon">👷</span><p>No crews yet.</p></div>`; return; }
+  const today = todayStr();
+  grid.innerHTML = state.crews.map(crew => {
+    const jobs = state.assignments.filter(a => a.crewId === crew.id);
+    const active = jobs.find(a => a.start<=today && a.end>=today);
+    const permNames = crew.permEquipmentIds.map(id => { const e=state.equipment.find(x=>x.id===id); return e?e.name:null; }).filter(Boolean);
+    const unavailNow = (crew.availability||[]).find(b=>b.start<=today&&b.end>=today);
+    const workerCount = (crew.workers_list||[]).length || crew.workers;
+    return `<div class="card" onclick="openCrewDetail('${crew.id}')">
+      <div class="card-top">
+        <div>
+          <div class="card-name">${esc(crew.name)}</div>
+          <div class="card-sub">${esc(crew.foreman)} · ${workerCount} workers</div>
+        </div>
+        ${unavailNow?`<span class="crew-unavail-badge">Unavail.</span>`:
+          `<span class="status-badge ${active?'status-inuse':'status-available'}">${active?'On Job':'Available'}</span>`}
+      </div>
+      <div class="card-meta">
+        ${unavailNow?`<strong style="color:var(--red)">Unavailable:</strong> ${esc(unavailNow.reason||'No reason given')}<br><span style="font-size:0.75rem">${unavailNow.start} → ${unavailNow.end}</span>`
+          :active?`<strong>Current:</strong> ${esc(active.job)} <span class="job-status-badge ${jobStatusClass(getJobStatus(active))}">${jobStatusLabel(getJobStatus(active))}</span><br><span style="font-size:0.75rem">${active.start} → ${active.end}</span>`:`<span>No active assignment</span>`}
+        <br><strong>Total Jobs:</strong> ${jobs.length}
+        ${permNames.length?`<br><strong>Perm. Equip:</strong> ${permNames.join(', ')}`:''}
+      </div>
+      <div class="card-actions" onclick="event.stopPropagation()">
+        <button class="btn btn-sm btn-secondary" onclick="openEditCrew('${crew.id}')">Edit</button>
+        <button class="btn btn-sm btn-blue" onclick="openPermEq('${crew.id}')">+ Assign Equip.</button>
+        <button class="btn btn-sm btn-danger" style="color:var(--red);border-color:var(--red)" onclick="openAvailForm('${crew.id}')">Block Dates</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteCrew('${crew.id}')">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openCrewDetail(id) {
+  const crew = state.crews.find(c=>c.id===id); if(!crew) return;
+  const jobs = state.assignments.filter(a=>a.crewId===id);
+  const today = todayStr();
+  document.getElementById('crewDetailTitle').textContent = crew.name;  // textContent is safe
+
+  // Permanent equipment section
+  const permNames = crew.permEquipmentIds.map(eid => {
+    const e = state.equipment.find(x=>x.id===eid);
+    return e ? `<span class="perm-eq-chip">${e.name}<span class="remove-perm" onclick="removePermEq('${crew.id}','${eid}',event)" title="Remove">✕</span></span>` : '';
+  }).filter(Boolean).join('');
+
+  // Jobs
+  const jobsHtml = jobs.length
+    ? jobs.map(a => {
+        const allEqIds = getAssignmentAllEq(a);
+        const eqNames = allEqIds.map(eid => {
+          const e = state.equipment.find(x=>x.id===eid); if(!e) return null;
+          const isPerm = crew.permEquipmentIds.includes(eid);
+          return `${e.name}${isPerm?'<span class="perm-badge">PERM</span>':''}`;
+        }).filter(Boolean).join(', ');
+        const isActive = a.start<=today && a.end>=today;
+        const jobBookings = state.bookings.filter(b=>b.assignmentId===a.id);
+        const st = getJobStatus(a);
+        return `<div class="assignment-item">
+          <div class="job-name" style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">${esc(a.job)}${isActive?'<span class="active-job-badge">Active</span>':''}<span class="job-status-badge ${jobStatusClass(st)}">${jobStatusLabel(st)}</span></div>
+          ${a.client?`<div class="job-meta">👤 ${esc(a.client)}${a.phone?' · '+esc(a.phone):''}${a.email?' · '+esc(a.email):''}</div>`:''}
+          <div class="job-meta">📍 ${esc(a.address)||'No address'}</div>
+          <div class="job-meta">📅 ${a.start} → ${a.end}</div>
+          ${eqNames?`<div class="job-meta">🔧 ${eqNames}</div>`:''}
+          ${jobBookings.length?`<div class="job-meta" style="color:var(--blue)">📋 ${jobBookings.length} extra booking(s)</div>`:''}
+          ${a.notes?`<div class="job-meta" style="margin-top:4px;color:#555">${esc(a.notes)}</div>`:''}
+          <div style="margin-top:0.6rem;display:flex;gap:0.4rem;flex-wrap:wrap">
+            ${isActive?`<button class="btn btn-sm btn-blue" onclick="openBookingForm('${crew.id}','${a.id}')">+ Book Equipment</button>`:''}
+            ${st!=='complete'?`<button class="btn btn-sm btn-secondary" onclick="cycleJobStatus('${a.id}')">Change Status</button>`:'<button class="btn btn-sm" style="background:#D4EDDA;color:var(--green);border:1px solid #A8D5B5;font-family:Barlow Condensed,sans-serif;font-weight:700;font-size:0.76rem;letter-spacing:1px;padding:0.32rem 0.85rem;cursor:default">✓ Complete</button>'}
+          </div>
+        </div>`;
+      }).join('')
+    : `<p style="color:var(--mid);font-size:0.85rem">No assignments yet.</p>`;
+
+  const workerListHtml = (crew.workers_list||[]).length
+    ? (crew.workers_list).map(w=>`<div class="worker-row"><div><span class="worker-name">${esc(w.name)}</span> <span class="worker-role">${esc(w.role)}</span></div></div>`).join('')
+    : `<div style="font-family:Inconsolata,monospace;font-size:0.72rem;color:var(--mid)">No individual workers listed — headcount only.</div>`;
+
+  const availHtml = (crew.availability||[]).length
+    ? crew.availability.map((b,i)=>`<div class="avail-block">
+        <div><div class="avail-dates">${b.start} → ${b.end}</div><div class="avail-reason">${esc(b.reason||'No reason')}</div></div>
+        <button class="avail-remove" onclick="removeAvailBlock('${crew.id}',${i})">✕</button>
+      </div>`).join('')
+    : `<div style="font-family:Inconsolata,monospace;font-size:0.72rem;color:var(--mid)">No blocked dates.</div>`;
+
+  document.getElementById('crewDetailContent').innerHTML = `
+    <div class="detail-section"><div class="detail-label">Foreman / Lead</div><div class="detail-value">${esc(crew.foreman)}</div></div>
+    <div class="detail-section"><div class="detail-label">Crew Size</div><div class="detail-value">${esc(String((crew.workers_list||[]).length||crew.workers))} workers</div></div>
+    <div class="detail-section"><div class="detail-label">Workers</div><div class="worker-list">${workerListHtml}</div></div>
+    <div class="detail-section">
+      <div class="detail-label" style="display:flex;align-items:center;justify-content:space-between">Unavailability Blocks <button class="btn btn-sm btn-danger" style="font-size:0.65rem;padding:2px 8px" onclick="closeOverlay('crewDetailOverlay');openAvailForm('${crew.id}')">+ Block Dates</button></div>
+      ${availHtml}
+    </div>
+    <div class="detail-section">
+      <div class="detail-label">Permanently Assigned Equipment</div>
+      ${permNames ? `<div class="perm-eq-list">${permNames}</div>` : `<div style="color:var(--mid);font-size:0.83rem;margin-top:4px">None assigned. <button class="btn btn-sm btn-blue" style="margin-left:6px" onclick="closeOverlay('crewDetailOverlay');openPermEq('${crew.id}')">+ Assign</button></div>`}
+    </div>
+    <hr class="divider">
+    <div class="detail-label" style="margin-bottom:0.75rem">Job History (${jobs.length})</div>
+    ${jobsHtml}
+    <div style="margin-top:1.5rem;display:flex;gap:0.5rem;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="closeOverlay('crewDetailOverlay');openAddAssignment('${crew.id}')">+ New Job</button>
+      <button class="btn btn-secondary" onclick="closeOverlay('crewDetailOverlay');openPermEq('${crew.id}')">Manage Equip.</button>
+      <button class="btn btn-secondary" onclick="closeOverlay('crewDetailOverlay');openEditCrew('${crew.id}')">Edit Crew</button>
+    </div>`;
+  openOverlay('crewDetailOverlay');
+}
+
+function removePermEq(crewId, eqId, event) {
+  event.stopPropagation();
+  const crew = state.crews.find(c=>c.id===crewId); if(!crew) return;
+  crew.permEquipmentIds = crew.permEquipmentIds.filter(id=>id!==eqId);
+  saveState();
+  renderCrews();
+  openCrewDetail(crewId); // refresh modal
+}
+
+// temp workers being edited in the form
+let formWorkers = [];
+
+function renderFormWorkers() {
+  document.getElementById('cf_worker_list').innerHTML = formWorkers.length
+    ? formWorkers.map((w,i)=>`<div class="worker-row">
+        <div><span class="worker-name">${esc(w.name)}</span> <span class="worker-role">${esc(w.role)}</span></div>
+        <button class="worker-remove" onclick="removeFormWorker(${i})">✕</button>
+      </div>`).join('')
+    : '<div style="font-family:Inconsolata,monospace;font-size:0.72rem;color:var(--mid)">No workers added yet.</div>';
+}
+
+function addWorkerToForm() {
+  const name = document.getElementById('cf_worker_name').value.trim();
+  const role = document.getElementById('cf_worker_role').value;
+  if (!name) { alert('Please enter a worker name.'); return; }
+  formWorkers.push({ id: uid(), name, role });
+  document.getElementById('cf_worker_name').value = '';
+  renderFormWorkers();
+}
+
+function removeFormWorker(idx) {
+  formWorkers.splice(idx, 1);
+  renderFormWorkers();
+}
+
+function openAddCrew() {
+  state.editingCrewId=null;
+  formWorkers=[];
+  document.getElementById('crewFormTitle').textContent='Add Crew';
+  ['cf_name','cf_foreman','cf_workers','cf_worker_name'].forEach(id=>document.getElementById(id).value='');
+  renderFormWorkers();
+  openOverlay('crewFormOverlay');
+}
+
+function openEditCrew(id) {
+  const c=state.crews.find(x=>x.id===id); if(!c) return;
+  state.editingCrewId=id;
+  formWorkers = JSON.parse(JSON.stringify(c.workers_list||[]));
+  document.getElementById('crewFormTitle').textContent='Edit Crew';
+  document.getElementById('cf_name').value=c.name;
+  document.getElementById('cf_foreman').value=c.foreman;
+  document.getElementById('cf_workers').value=c.workers;
+  document.getElementById('cf_worker_name').value='';
+  renderFormWorkers();
+  openOverlay('crewFormOverlay');
+}
+
+function saveCrew() {
+  const name=document.getElementById('cf_name').value.trim();
+  const foreman=document.getElementById('cf_foreman').value.trim();
+  const workers=parseInt(document.getElementById('cf_workers').value)||formWorkers.length||1;
+  if(!name||!foreman){alert('Please fill in crew name and foreman.');return;}
+  if(state.editingCrewId) {
+    const c = state.crews.find(c=>c.id===state.editingCrewId);
+    Object.assign(c,{name,foreman,workers,workers_list:JSON.parse(JSON.stringify(formWorkers))});
+  } else {
+    state.crews.push({id:uid(),name,foreman,workers,workers_list:JSON.parse(JSON.stringify(formWorkers)),permEquipmentIds:[],availability:[]});
+  }
+  // Sync crew's workers_list to global state.workers
+  const savedCrew = state.editingCrewId
+    ? state.crews.find(c=>c.id===state.editingCrewId)
+    : state.crews[state.crews.length-1];
+  if (savedCrew) {
+    formWorkers.forEach(fw => {
+      if (!state.workers) state.workers = [];
+      const existing = state.workers.find(x=>x.id===fw.id);
+      if (existing) { Object.assign(existing, {name:fw.name, role:fw.role, crewId:savedCrew.id}); }
+      else { state.workers.push({id:fw.id, name:fw.name, role:fw.role, crewId:savedCrew.id, notes:''}); }
+    });
+  }
+  saveState(); closeOverlay('crewFormOverlay'); renderCrews(); updateStats();
+}
+
+function deleteCrew(id) {
+  if(!confirm('Delete this crew? Their assignments and bookings will also be removed.')) return;
+  // Unassign workers from this crew
+  if (state.workers) state.workers.forEach(w => { if (w.crewId===id) w.crewId = null; });
+  state.crews=state.crews.filter(c=>c.id!==id);
+  state.assignments=state.assignments.filter(a=>a.crewId!==id);
+  state.bookings=state.bookings.filter(b=>b.crewId!==id);
+  saveState(); renderCrews(); updateStats();
+}
+
+// ═══════════════════════════════════
+// AVAILABILITY
+// ═══════════════════════════════════
+function openAvailForm(crewId) {
+  state.availCrewId = crewId;
+  document.getElementById('av_start').value = todayStr();
+  document.getElementById('av_end').value = '';
+  document.getElementById('av_reason').value = '';
+  openOverlay('availFormOverlay');
+}
+
+function saveAvailBlock() {
+  const crew = state.crews.find(c=>c.id===state.availCrewId); if(!crew) return;
+  const start = document.getElementById('av_start').value;
+  const end = document.getElementById('av_end').value;
+  const reason = document.getElementById('av_reason').value.trim();
+  if (!start||!end) { alert('Please enter start and end dates.'); return; }
+  if (end < start) { alert('End date must be after start date.'); return; }
+  if (!crew.availability) crew.availability = [];
+  crew.availability.push({ start, end, reason });
+  saveState(); closeOverlay('availFormOverlay'); renderCrews(); updateHome();
+}
+
+function removeAvailBlock(crewId, idx) {
+  const crew = state.crews.find(c=>c.id===crewId); if(!crew) return;
+  crew.availability.splice(idx, 1);
+  saveState(); openCrewDetail(crewId); renderCrews(); updateHome();
+}
+
+// ═══════════════════════════════════
+// PERMANENT EQUIPMENT
+// ═══════════════════════════════════
+function openPermEq(crewId) {
+  state.permEqCrewId = crewId;
+  const crew = state.crews.find(c=>c.id===crewId);
+  const sel = document.getElementById('permEqSelect');
+  // Show equipment not already permanently assigned to ANY crew
+  const allPermIds = new Set(state.crews.flatMap(c => c.permEquipmentIds));
+  const available = state.equipment.filter(e => !allPermIds.has(e.id) && e.status !== 'repair');
+  sel.innerHTML = available.map(e => `<option value="${e.id}">${e.name} — ${catLabels[e.cat]||e.cat}</option>`).join('');
+  if (!available.length) sel.innerHTML = '<option disabled>All equipment already assigned or in repair</option>';
+  openOverlay('permEqOverlay');
+}
+
+function savePermEq() {
+  const crew = state.crews.find(c=>c.id===state.permEqCrewId); if(!crew) return;
+  const sel = Array.from(document.getElementById('permEqSelect').selectedOptions).map(o=>o.value);
+  if (!sel.length) { alert('Please select at least one piece of equipment.'); return; }
+  sel.forEach(id => { if(!crew.permEquipmentIds.includes(id)) crew.permEquipmentIds.push(id); });
+  saveState(); closeOverlay('permEqOverlay'); renderCrews();
+}
+
+// ═══════════════════════════════════
+// EQUIPMENT
+// ═══════════════════════════════════
+function filterEquipment(cat, el) {
+  state.currentEqFilter=cat;
+  document.querySelectorAll('.cat-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderEquipment();
+}
+
+function renderEquipment() {
+  const grid=document.getElementById('equipmentGrid');
+  const items = state.currentEqFilter==='all' ? state.equipment : state.equipment.filter(e=>e.cat===state.currentEqFilter);
+  if(!items.length){grid.innerHTML=`<div class="empty-state"><span class="e-icon">🔧</span><p>No equipment in this category yet.</p></div>`;return;}
+  grid.innerHTML = items.map(eq=>{
+    const effStatus = getEqStatus(eq);
+    const sc = { available:'status-available', inuse:'status-inuse', repair:'status-repair', assigned:'status-assigned' }[effStatus]||'';
+    const sl = { available:'Available', inuse:'In Use', repair:'In Repair', assigned:'Assigned' }[effStatus]||effStatus;
+    const ctx = getEqActiveContext(eq.id);
+    const permCrew = state.crews.find(c=>c.permEquipmentIds.includes(eq.id));
+    let metaHtml = '';
+    if (ctx && ctx.type === 'assignment') {
+      metaHtml = `<strong>Job:</strong> ${ctx.assignment.job}<br><span style="font-size:0.75rem">${ctx.assignment.start} → ${ctx.assignment.end}</span>${ctx.crew?`<br><span style="font-size:0.75rem">👷 ${ctx.crew.name}</span>`:''}`;
+    } else if (ctx && ctx.type === 'booking') {
+      metaHtml = `<strong>Booked:</strong> ${ctx.assignment?.job||'Standalone booking'}<br><span style="font-size:0.75rem">${ctx.booking.start} → ${ctx.booking.end}</span>${ctx.crew?`<br><span style="font-size:0.75rem">👷 ${ctx.crew.name}</span>`:''}`;
+    } else if (permCrew && effStatus === 'assigned') {
+      metaHtml = `<span style="color:var(--blue)">Permanently with ${permCrew.name}</span><br><span style="font-size:0.75rem">No active job</span>`;
+    } else {
+      metaHtml = `<span>${eq.status==='repair'?(eq.notes||'Down for maintenance'):'No active assignment'}</span>`;
+    }
+    return `<div class="card" onclick="openEqDetail('${eq.id}')">
+      <div class="card-top">
+        <div>
+          <div class="card-name">${esc(eq.name)}</div>
+          <div class="card-sub">${esc(catLabels[eq.cat]||eq.cat)}${permCrew?` · Perm: ${esc(permCrew.name)}`:''}</div>
+        </div>
+        <span class="status-badge ${sc}">${sl}</span>
+      </div>
+      <div class="card-meta">${metaHtml}</div>
+      <div class="card-actions" onclick="event.stopPropagation()">
+        <button class="btn btn-sm btn-secondary" onclick="openEditEquipment('${eq.id}')">Edit</button>
+        ${permCrew
+          ? `<span style="font-family:'Inconsolata',monospace;font-size:0.65rem;letter-spacing:1px;text-transform:uppercase;color:var(--blue);padding:0.32rem 0.6rem;border:1px solid #9BBFE0;background:#D6E8FF;">Crew Assigned</span>`
+          : eq.status!=='repair' ? `<button class="btn btn-sm btn-blue" onclick="openEqBookingForm('${eq.id}')">+ Book</button>` : ''}
+        <button class="btn btn-sm btn-danger" onclick="deleteEquipment('${eq.id}')">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openEqDetail(id) {
+  const eq=state.equipment.find(e=>e.id===id); if(!eq) return;
+  const today=todayStr();
+  const effStatus = getEqStatus(eq);
+  const sc={available:'status-available',inuse:'status-inuse',repair:'status-repair',assigned:'status-assigned'}[effStatus]||'';
+  const sl={available:'Available',inuse:'In Use',repair:'In Repair / Down',assigned:'Perm. Assigned'}[effStatus]||effStatus;
+  const permCrew = state.crews.find(c=>c.permEquipmentIds.includes(eq.id));
+
+  // All assignments this equipment appears in
+  const directAssigns = state.assignments.filter(a => {
+    const crew = state.crews.find(c=>c.id===a.crewId);
+    return a.equipmentIds.includes(id) || (crew && crew.permEquipmentIds.includes(id));
+  });
+  const allBookings = state.bookings.filter(b=>b.equipmentIds.includes(id));
+
+  const assignHtml = directAssigns.length
+    ? directAssigns.map(a=>{
+        const crew=state.crews.find(c=>c.id===a.crewId);
+        const isActive=a.start<=today&&a.end>=today;
+        const isPerm = crew && crew.permEquipmentIds.includes(id);
+        return `<div class="assignment-item">
+          <div class="job-name">${esc(a.job)}${isActive?'<span class="active-job-badge">Active</span>':''}${isPerm?'<span class="perm-badge">PERM</span>':''}</div>
+          <div class="job-meta">📍 ${esc(a.address)||'No address'}</div>
+          <div class="job-meta">📅 ${a.start} → ${a.end}</div>
+          ${crew?`<div class="job-meta">👷 ${esc(crew.name)} (${esc(crew.foreman)})</div>`:''}
+        </div>`;
+      }).join('')
+    : '';
+
+  const bookHtml = allBookings.length
+    ? allBookings.map(b=>{
+        const crew=state.crews.find(c=>c.id===b.crewId);
+        const assign=state.assignments.find(a=>a.id===b.assignmentId);
+        const isActive=b.start<=today&&b.end>=today;
+        return `<div class="assignment-item booking-item">
+          <div class="job-name">${esc(assign?.job)||'Standalone Booking'}${isActive?'<span class="active-job-badge">Active</span>':''}<span class="booking-badge">Booking</span></div>
+          <div class="job-meta">📅 ${b.start} → ${b.end}</div>
+          ${crew?`<div class="job-meta">👷 ${esc(crew.name)}</div>`:''}
+          ${b.notes?`<div class="job-meta" style="margin-top:4px;color:#555">${esc(b.notes)}</div>`:''}
+        </div>`;
+      }).join('')
+    : '';
+
+  document.getElementById('eqDetailTitle').textContent=eq.name;
+  document.getElementById('eqDetailContent').innerHTML=`
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.2rem">
+      <span class="status-badge ${sc}">${sl}</span>
+      <span style="font-family:'Inconsolata',monospace;font-size:0.7rem;color:var(--mid);letter-spacing:1px">${catLabels[eq.cat]||eq.cat}</span>
+    </div>
+    ${permCrew?`<div class="detail-section"><div class="detail-label">Permanently Assigned To</div><div class="detail-value" style="color:var(--blue)">${permCrew.name}</div></div>`:''}
+    ${eq.notes?`<div class="detail-section"><div class="detail-label">Notes</div><div class="detail-value">${esc(eq.notes)}</div></div>`:''}
+    <hr class="divider">
+    <div class="detail-label" style="margin-bottom:0.75rem">Job History (${directAssigns.length})</div>
+    ${assignHtml||`<p style="color:var(--mid);font-size:0.85rem;margin-bottom:0.75rem">No job assignments on record.</p>`}
+    ${allBookings.length?`<div class="detail-label" style="margin:0.75rem 0">Bookings (${allBookings.length})</div>${bookHtml}`:''}
+    <div style="margin-top:1.5rem;display:flex;gap:0.5rem;flex-wrap:wrap">
+      ${permCrew
+        ? `<span style="font-family:'Inconsolata',monospace;font-size:0.68rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--blue);padding:0.55rem 1rem;border:1.5px solid #9BBFE0;background:#D6E8FF;">Permanently assigned to ${permCrew.name} — booking unavailable</span>`
+        : eq.status!=='repair' ? `<button class="btn btn-primary" onclick="closeOverlay('eqDetailOverlay');openEqBookingForm('${eq.id}')">+ Book Equipment</button>` : ''}
+      <button class="btn btn-secondary" onclick="closeOverlay('eqDetailOverlay');openEditEquipment('${eq.id}')">Edit Equipment</button>
+    </div>`;
+  openOverlay('eqDetailOverlay');
+}
+
+function openAddEquipment() {
+  state.editingEqId=null;
+  document.getElementById('eqFormTitle').textContent='Add Equipment';
+  document.getElementById('ef_name').value='';
+  document.getElementById('ef_cat').value='truck';
+  document.getElementById('ef_status').value='available';
+  document.getElementById('ef_notes').value='';
+  openOverlay('eqFormOverlay');
+}
+
+function openEditEquipment(id) {
+  const eq=state.equipment.find(e=>e.id===id); if(!eq) return;
+  state.editingEqId=id;
+  document.getElementById('eqFormTitle').textContent='Edit Equipment';
+  document.getElementById('ef_name').value=eq.name;
+  document.getElementById('ef_cat').value=eq.cat;
+  document.getElementById('ef_status').value=eq.status;
+  document.getElementById('ef_notes').value=eq.notes||'';
+  openOverlay('eqFormOverlay');
+}
+
+function saveEquipment() {
+  const name=document.getElementById('ef_name').value.trim();
+  const cat=document.getElementById('ef_cat').value;
+  const status=document.getElementById('ef_status').value;
+  const notes=document.getElementById('ef_notes').value.trim();
+  if(!name){alert('Please enter an equipment name.');return;}
+  if(state.editingEqId) Object.assign(state.equipment.find(e=>e.id===state.editingEqId),{name,cat,status,notes});
+  else state.equipment.push({id:uid(),name,cat,status,notes});
+  saveState(); closeOverlay('eqFormOverlay'); renderEquipment();
+}
+
+function deleteEquipment(id) {
+  if(!confirm('Delete this equipment?')) return;
+  state.equipment=state.equipment.filter(e=>e.id!==id);
+  state.crews.forEach(c=>{c.permEquipmentIds=c.permEquipmentIds.filter(eid=>eid!==id);});
+  state.assignments=state.assignments.map(a=>({...a,equipmentIds:a.equipmentIds.filter(eid=>eid!==id)}));
+  state.bookings=state.bookings.map(b=>({...b,equipmentIds:b.equipmentIds.filter(eid=>eid!==id)}));
+  saveState(); renderEquipment();
+}
+
+// ═══════════════════════════════════
+// ASSIGNMENTS
+// ═══════════════════════════════════
+function openAddAssignment(preCrewId) {
+  state.editingAssignmentId = null;
+  document.getElementById('assignFormTitle').textContent = 'Schedule Job';
+  ['af_job','af_address','af_client','af_phone','af_email','af_notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('af_start').value=todayStr();
+  document.getElementById('af_end').value='';
+  document.getElementById('af_status').value='notstarted';
+  document.getElementById('conflictAlert').classList.remove('visible');
+  document.getElementById('permEqNotice').style.display='none';
+
+  const cs=document.getElementById('af_crew');
+  cs.innerHTML='<option value="">— None —</option>'+state.crews.map(c=>`<option value="${c.id}" ${c.id===preCrewId?'selected':''}>${c.name} (${c.foreman})</option>`).join('');
+
+  const es=document.getElementById('af_equipment');
+  // Exclude equipment permanently assigned to a different crew
+  es.innerHTML=state.equipment.map(e=>{
+    const permCrew=state.crews.find(c=>c.permEquipmentIds.includes(e.id));
+    if(permCrew && permCrew.id !== preCrewId) return ''; // hidden — belongs to another crew
+    return `<option value="${e.id}">${e.name} — ${catLabels[e.cat]||e.cat}</option>`;
+  }).join('');
+
+  openOverlay('assignFormOverlay');
+  if (preCrewId) onCrewChange();
+}
+
+function onCrewChange() {
+  const crewId = document.getElementById('af_crew').value;
+  const notice = document.getElementById('permEqNotice');
+
+  // Rebuild equipment list — hide perm equipment assigned to a different crew
+  const es = document.getElementById('af_equipment');
+  es.innerHTML = state.equipment.map(e => {
+    const permCrew = state.crews.find(c => c.permEquipmentIds.includes(e.id));
+    if (permCrew && permCrew.id !== crewId) return ''; // belongs to another crew
+    return `<option value="${e.id}">${e.name} — ${catLabels[e.cat]||e.cat}</option>`;
+  }).join('');
+
+  if (!crewId) { notice.style.display='none'; checkConflicts(); return; }
+  const crew = state.crews.find(c=>c.id===crewId);
+  if (!crew || !crew.permEquipmentIds.length) { notice.style.display='none'; checkConflicts(); return; }
+  const names = crew.permEquipmentIds.map(id=>{const e=state.equipment.find(x=>x.id===id);return e?e.name:null;}).filter(Boolean);
+  notice.textContent = `Permanently assigned equipment will be auto-included: ${names.join(', ')}`;
+  notice.style.display = 'block';
+  checkConflicts();
+}
+
+function onAssignDateChange() { checkConflicts(); }
+
+function checkConflicts() {
+  const start=document.getElementById('af_start').value;
+  const end=document.getElementById('af_end').value;
+  if(!start||!end) return;
+  const crewId=document.getElementById('af_crew').value;
+  const extraIds=Array.from(document.getElementById('af_equipment').selectedOptions).map(o=>o.value);
+  const crew=state.crews.find(c=>c.id===crewId);
+  const allIds=[...extraIds, ...(crew?crew.permEquipmentIds:[])];
+  const conflicts=findConflicts(allIds,start,end,state.editingAssignmentId||null);
+
+  // Check crew availability blocks overlap with job dates
+  if (crew) {
+    (crew.availability||[]).forEach(b => {
+      if (b.end >= start && b.start <= end) {
+        conflicts.push(`⚠ ${esc(crew.name)} is marked unavailable ${b.start} → ${b.end}${b.reason ? ' (' + esc(b.reason) + ')' : ''}`);
+      }
+    });
+  }
+
+  const alertEl=document.getElementById('conflictAlert');
+  if(conflicts.length){alertEl.innerHTML=[...new Set(conflicts)].join('<br>');alertEl.classList.add('visible');}
+  else alertEl.classList.remove('visible');
+}
+
+function cycleJobStatus(assignId) {
+  const a = state.assignments.find(x=>x.id===assignId); if(!a) return;
+  const cycle = { notstarted:'inprogress', inprogress:'complete', complete:'notstarted', overdue:'complete' };
+  a.status = cycle[a.status||'notstarted'] || 'inprogress';
+  saveState();
+  // refresh crew detail if open
+  if (document.getElementById('crewDetailOverlay').classList.contains('open')) {
+    const crew = state.crews.find(c=>c.id===a.crewId);
+    if (crew) openCrewDetail(crew.id);
+  }
+  updateHome();
+  renderCrews();
+  if (document.getElementById('jobsPanel').classList.contains('active')) renderJobs();
+}
+
+function saveAssignment() {
+  const job=document.getElementById('af_job').value.trim();
+  const address=document.getElementById('af_address').value.trim();
+  const start=document.getElementById('af_start').value;
+  const end=document.getElementById('af_end').value;
+  const crewId=document.getElementById('af_crew').value;
+  const equipmentIds=Array.from(document.getElementById('af_equipment').selectedOptions).map(o=>o.value);
+  const notes=document.getElementById('af_notes').value.trim();
+  const client=document.getElementById('af_client').value.trim();
+  const phone=document.getElementById('af_phone').value.trim();
+  const email=document.getElementById('af_email').value.trim();
+  const status=document.getElementById('af_status').value||'notstarted';
+  if(!job||!start||!end){alert('Please fill in job name, start date, and end date.');return;}
+  if(end<start){alert('End date must be after start date.');return;}
+  if(document.getElementById('conflictAlert').classList.contains('visible')){
+    alert('Cannot save — equipment conflicts must be resolved before saving this assignment.');return;
+  }
+  if (state.editingAssignmentId) {
+    Object.assign(state.assignments.find(x=>x.id===state.editingAssignmentId), {job,address,client,phone,email,start,end,crewId,equipmentIds,notes,status});
+    state.editingAssignmentId = null;
+  } else {
+    state.assignments.push({id:uid(),job,address,client,phone,email,start,end,crewId,equipmentIds,notes,status});
+  }
+  saveState(); closeOverlay('assignFormOverlay');
+  renderCrews(); renderJobs(); updateHome();
+}
+
+// ═══════════════════════════════════
+// BOOKINGS
+// ═══════════════════════════════════
+function openBookingForm(crewId, assignmentId) {
+  state.bookingCrewId = crewId;
+  state.bookingAssignmentId = assignmentId;
+  const assign = state.assignments.find(a=>a.id===assignmentId);
+
+  // Equipment: exclude perm and already-assigned
+  const crew = state.crews.find(c=>c.id===crewId);
+  const alreadyIn = new Set([...assign.equipmentIds, ...(crew?crew.permEquipmentIds:[])]);
+  const sel = document.getElementById('bk_equipment');
+  sel.innerHTML = state.equipment
+    .filter(e=>e.status!=='repair')
+    .map(e=>`<option value="${e.id}"${alreadyIn.has(e.id)?' disabled':''}>` +
+      `${e.name} — ${catLabels[e.cat]||e.cat}${alreadyIn.has(e.id)?' (already on job)':''}</option>`
+    ).join('');
+
+  document.getElementById('bk_start').value = assign.start;
+  document.getElementById('bk_end').value = assign.end;
+  document.getElementById('bk_notes').value = '';
+  document.getElementById('bk_full').checked = true;
+  document.getElementById('bk_custom_dates').style.display = 'none';
+  document.getElementById('bookConflictAlert').classList.remove('visible');
+
+  closeOverlay('crewDetailOverlay');
+  openOverlay('bookingFormOverlay');
+}
+
+function toggleBookingDates() {
+  const isCustom = document.getElementById('bk_custom').checked;
+  document.getElementById('bk_custom_dates').style.display = isCustom ? 'block' : 'none';
+  checkBookingConflicts();
+}
+
+function checkBookingConflicts() {
+  const assign = state.assignments.find(a=>a.id===state.bookingAssignmentId); if(!assign) return;
+  const isCustom = document.getElementById('bk_custom').checked;
+  const start = isCustom ? document.getElementById('bk_start').value : assign.start;
+  const end = isCustom ? document.getElementById('bk_end').value : assign.end;
+  if(!start||!end) return;
+  const selIds = Array.from(document.getElementById('bk_equipment').selectedOptions).map(o=>o.value);
+  const conflicts = findConflicts(selIds, start, end, state.bookingAssignmentId);
+  const alertEl = document.getElementById('bookConflictAlert');
+  if(conflicts.length){alertEl.innerHTML=[...new Set(conflicts)].join('<br>');alertEl.classList.add('visible');}
+  else alertEl.classList.remove('visible');
+}
+
+function saveBooking() {
+  const assign = state.assignments.find(a=>a.id===state.bookingAssignmentId); if(!assign) return;
+  const equipmentIds = Array.from(document.getElementById('bk_equipment').selectedOptions).map(o=>o.value);
+  if(!equipmentIds.length){alert('Please select at least one piece of equipment.');return;}
+  const isCustom = document.getElementById('bk_custom').checked;
+  const start = isCustom ? document.getElementById('bk_start').value : assign.start;
+  const end = isCustom ? document.getElementById('bk_end').value : assign.end;
+  if(!start||!end){alert('Please fill in dates.');return;}
+  if(end<start){alert('End date must be after start date.');return;}
+  if(document.getElementById('bookConflictAlert').classList.contains('visible')){
+    alert('Cannot save — equipment conflicts must be resolved before confirming this booking.');return;
+  }
+  if(isCustom && (start<assign.start||end>assign.end)) {
+    if(!confirm(`Note: These dates extend outside the job period (${assign.start} → ${assign.end}). Continue?`)) return;
+  }
+  state.bookings.push({
+    id:uid(), crewId:state.bookingCrewId, assignmentId:state.bookingAssignmentId,
+    equipmentIds, start, end, notes:document.getElementById('bk_notes').value.trim(),
+    scope: isCustom?'custom':'full'
+  });
+  saveState(); closeOverlay('bookingFormOverlay');
+  openCrewDetail(state.bookingCrewId);
+}
+
+
+
+// ═══════════════════════════════════
+// JOBS PANEL
+// ═══════════════════════════════════
+let currentJobFilter = 'all';
+
+function filterJobs(filter, el) {
+  currentJobFilter = filter;
+  document.querySelectorAll('.jobs-filter-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderJobs();
+}
+
+function jobStripeClass(status) {
+  return { upcoming:'stripe-upcoming', notstarted:'stripe-upcoming', inprogress:'stripe-active', complete:'stripe-complete', overdue:'stripe-overdue' }[status] || 'stripe-upcoming';
+}
+
+function daysLabel(start, end) {
+  const s = new Date(start), e = new Date(end);
+  const diff = Math.round((e - s) / 86400000) + 1;
+  return diff === 1 ? '1 day' : `${diff} days`;
+}
+
+function daysUntil(start) {
+  const today = new Date(todayStr());
+  const s = new Date(start);
+  const diff = Math.round((s - today) / 86400000);
+  if (diff === 0) return 'Starts today';
+  if (diff === 1) return 'Starts tomorrow';
+  if (diff > 0) return `Starts in ${diff} days`;
+  return null;
+}
+
+function renderJobs() {
+  const grid = document.getElementById('jobsGrid');
+  const today = todayStr();
+
+  // Annotate each assignment with effective display status
+  const annotated = state.assignments.map(a => ({
+    ...a,
+    _display: getJobStatus(a)
+  }));
+
+  let list = annotated;
+  if (currentJobFilter === 'upcoming') list = annotated.filter(a => a._display === 'notstarted' && a.start > today);
+  if (currentJobFilter === 'active')   list = annotated.filter(a => a._display === 'inprogress');
+  if (currentJobFilter === 'complete') list = annotated.filter(a => a._display === 'complete');
+  if (currentJobFilter === 'overdue')  list = annotated.filter(a => a._display === 'overdue');
+
+  // Sort: overdue first, then active, then upcoming by start date, then complete
+  const order = { overdue:0, inprogress:1, notstarted:2, complete:3 };
+  list = [...list].sort((a,b) => {
+    const od = (order[a._display]??2) - (order[b._display]??2);
+    if (od !== 0) return od;
+    return a.start.localeCompare(b.start);
+  });
+
+  if (!list.length) {
+    grid.innerHTML = `<div class="empty-state"><span class="e-icon">📋</span><p>No jobs in this category.</p><button class="btn btn-primary" onclick="openAddAssignment(null)">+ Schedule Job</button></div>`;
+    return;
+  }
+
+  grid.innerHTML = list.map(a => {
+    const crew = state.crews.find(c => c.id === a.crewId);
+    const allEqIds = getAssignmentAllEq(a);
+    const eqNames = allEqIds.map(id => { const e=state.equipment.find(x=>x.id===id); return e?esc(e.name):null; }).filter(Boolean);
+    const st = a._display;
+    const until = (st==='notstarted'||st==='upcoming') ? daysUntil(a.start) : null;
+
+    return `<div class="job-card" onclick="openJobDetail('${a.id}')">
+      <div class="job-card-stripe ${jobStripeClass(st)}"></div>
+      <div class="job-card-body">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:0.5rem;margin-bottom:0.35rem">
+          <div class="jc-title">${esc(a.job)}</div>
+          <span class="job-status-badge ${jobStatusClass(st)}">${jobStatusLabel(st)}</span>
+        </div>
+        ${a.client ? `<div class="jc-client">👤 ${esc(a.client)}${a.phone?' · '+esc(a.phone):''}</div>` : ''}
+        <div class="jc-dates">
+          📅 ${a.start} → ${a.end}
+          <span class="jc-days-chip">${daysLabel(a.start,a.end)}</span>
+          ${until?`<span style="font-family:'Inconsolata',monospace;font-size:0.68rem;color:var(--blue)">${until}</span>`:''}
+        </div>
+        <div class="jc-meta">
+          ${crew?`<strong>Crew:</strong> ${esc(crew.name)}`:'<span style="color:var(--red)">No crew assigned</span>'}
+          ${a.address?`<br>📍 ${esc(a.address)}`:''}
+          ${eqNames.length?`<br>🔧 ${eqNames.join(', ')}`:''}
+        </div>
+      </div>
+      <div class="job-card-actions" onclick="event.stopPropagation()">
+        <button class="btn btn-sm btn-primary" onclick="openJobDetail('${a.id}')">View</button>
+        <button class="btn btn-sm btn-secondary" onclick="openEditAssignment('${a.id}')">Edit</button>
+        ${st!=='complete'?`<button class="btn btn-sm btn-secondary" onclick="cycleJobStatus('${a.id}');renderJobs()">Change Status</button>`:''}
+        <button class="btn btn-sm btn-danger" onclick="deleteAssignment('${a.id}')">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openJobDetail(id) {
+  const a = state.assignments.find(x=>x.id===id); if(!a) return;
+  const today = todayStr();
+  const crew = state.crews.find(c=>c.id===a.crewId);
+  const allEqIds = getAssignmentAllEq(a);
+  const st = getJobStatus(a);
+  const workers = crew ? (crew.workers_list||[]) : [];
+
+  const eqHtml = allEqIds.length
+    ? allEqIds.map(eid => {
+        const eq = state.equipment.find(e=>e.id===eid); if(!eq) return '';
+        const isPerm = crew && crew.permEquipmentIds.includes(eid);
+        return `<div class="worker-row"><div><span class="worker-name">${esc(eq.name)}</span> <span class="worker-role">${esc(catLabels[eq.cat]||eq.cat)}</span></div>${isPerm?'<span class="perm-badge">PERM</span>':''}</div>`;
+      }).join('')
+    : `<div style="font-family:'Inconsolata',monospace;font-size:0.72rem;color:var(--mid)">No equipment assigned.</div>`;
+
+  const workersHtml = workers.length
+    ? workers.map(w=>`<div class="worker-row"><span class="worker-name">${esc(w.name)}</span><span class="worker-role">${esc(w.role)}</span></div>`).join('')
+    : `<div style="font-family:'Inconsolata',monospace;font-size:0.72rem;color:var(--mid)">No individual workers listed.</div>`;
+
+  const jobBookings = state.bookings.filter(b=>b.assignmentId===id);
+
+  document.getElementById('jobDetailTitle').textContent = a.job;
+  document.getElementById('jobDetailContent').innerHTML = `
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.25rem;flex-wrap:wrap">
+      <span class="job-status-badge ${jobStatusClass(st)}" style="font-size:0.7rem;padding:4px 10px">${jobStatusLabel(st)}</span>
+      <span style="font-family:'Inconsolata',monospace;font-size:0.7rem;color:var(--mid)">${a.start} → ${a.end} · ${daysLabel(a.start,a.end)}</span>
+      ${daysUntil(a.start)&&st==='notstarted'?`<span style="font-family:'Inconsolata',monospace;font-size:0.7rem;color:var(--blue)">${daysUntil(a.start)}</span>`:''}
+    </div>
+    ${a.address?`<div class="detail-section"><div class="detail-label">Location</div><div class="detail-value">📍 ${esc(a.address)}</div></div>`:''}
+    ${a.client?`<div class="detail-section"><div class="detail-label">Client</div><div class="detail-value">${esc(a.client)}${a.phone?` · ${esc(a.phone)}`:''}</div>${a.email?`<div style="font-size:0.82rem;color:var(--mid)">${esc(a.email)}</div>`:''}</div>`:''}
+    <hr class="divider">
+    <div class="detail-section">
+      <div class="detail-label">Assigned Crew</div>
+      ${crew
+        ? `<div class="detail-value">${esc(crew.name)}</div><div style="font-size:0.82rem;color:var(--mid)">${esc(crew.foreman)}</div>
+           <div class="worker-list" style="margin-top:0.5rem">${workersHtml}</div>`
+        : `<div style="font-family:'Inconsolata',monospace;font-size:0.8rem;color:var(--red)">No crew assigned</div>`}
+    </div>
+    <div class="detail-section">
+      <div class="detail-label">Equipment (${allEqIds.length})</div>
+      <div class="worker-list" style="margin-top:0.4rem">${eqHtml}</div>
+    </div>
+    ${jobBookings.length?`<div class="detail-section"><div class="detail-label">Extra Bookings (${jobBookings.length})</div><div style="font-family:'Inconsolata',monospace;font-size:0.75rem;color:var(--mid)">${jobBookings.map(b=>`· ${b.equipmentIds.map(eid=>{const e=state.equipment.find(x=>x.id===eid);return e?esc(e.name):'?';}).join(', ')} (${b.start}→${b.end})`).join('<br>')}</div></div>`:''}
+    ${a.notes?`<div class="detail-section"><div class="detail-label">Notes</div><div class="detail-value" style="font-size:0.88rem;line-height:1.6">${esc(a.notes)}</div></div>`:''}
+    <hr class="divider">
+    <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="closeOverlay('jobDetailOverlay');openEditAssignment('${a.id}')">Edit Job</button>
+      ${st!=='complete'?`<button class="btn btn-secondary" onclick="cycleJobStatus('${a.id}');openJobDetail('${a.id}');renderJobs()">Change Status</button>`:''}
+      <button class="btn btn-danger" onclick="closeOverlay('jobDetailOverlay');deleteAssignment('${a.id}')">Delete Job</button>
+    </div>`;
+  openOverlay('jobDetailOverlay');
+}
+
+function openEditAssignment(id) {
+  const a = state.assignments.find(x=>x.id===id); if(!a) return;
+  state.editingAssignmentId = id;
+  document.getElementById('assignFormTitle').textContent = 'Edit Job';
+  document.getElementById('af_job').value = a.job;
+  document.getElementById('af_address').value = a.address||'';
+  document.getElementById('af_client').value = a.client||'';
+  document.getElementById('af_phone').value = a.phone||'';
+  document.getElementById('af_email').value = a.email||'';
+  document.getElementById('af_start').value = a.start;
+  document.getElementById('af_end').value = a.end;
+  document.getElementById('af_status').value = a.status||'notstarted';
+  document.getElementById('af_notes').value = a.notes||'';
+  document.getElementById('conflictAlert').classList.remove('visible');
+  document.getElementById('permEqNotice').style.display='none';
+
+  const cs = document.getElementById('af_crew');
+  cs.innerHTML = '<option value="">— None —</option>' + state.crews.map(c=>`<option value="${c.id}" ${c.id===a.crewId?'selected':''}>${esc(c.name)} (${esc(c.foreman)})</option>`).join('');
+
+  const es = document.getElementById('af_equipment');
+  es.innerHTML = state.equipment.map(e=>`<option value="${e.id}" ${a.equipmentIds.includes(e.id)?'selected':''}>${esc(e.name)} — ${catLabels[e.cat]||e.cat}</option>`).join('');
+
+  if (a.crewId) onCrewChange();
+  openOverlay('assignFormOverlay');
+}
+
+function deleteAssignment(id) {
+  if (!confirm('Delete this job? Equipment bookings linked to it will also be removed.')) return;
+  state.assignments = state.assignments.filter(x=>x.id!==id);
+  state.bookings = state.bookings.filter(b=>b.assignmentId!==id);
+  saveState();
+  closeOverlay('jobDetailOverlay');
+  renderJobs();
+  renderCrews();
+  updateHome();
+}
+// ═══════════════════════════════════
+// WORKERS
+// ═══════════════════════════════════
+let currentWorkerFilter = 'all';
+
+const roleColors = {
+  'Labourer':  { bg:'#F2EFE8', color:'#6B6560', border:'#C8C3BA' },
+  'Operator':  { bg:'#D6E8FF', color:'#1A4F8A', border:'#9BBFE0' },
+  'Driver':    { bg:'#FFF3CD', color:'#7a5c00', border:'#e8cc60' },
+  'Lead Hand': { bg:'#E8F5E9', color:'#2E7D52', border:'#A8D5B5' },
+  'Foreman':   { bg:'#111',    color:'#F5C800', border:'#111'     },
+};
+
+function roleBadge(role) {
+  const c = roleColors[role] || { bg:'#F2EFE8', color:'#6B6560', border:'#C8C3BA' };
+  return `<span style="font-family:'Inconsolata',monospace;font-size:0.6rem;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;padding:3px 7px;background:${c.bg};color:${c.color};border:1px solid ${c.border};white-space:nowrap">${esc(role)}</span>`;
+}
+
+function filterWorkers(filter, el) {
+  currentWorkerFilter = filter;
+  document.querySelectorAll('#workersPanel .cat-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderWorkers();
+}
+
+function renderWorkers() {
+  const grid = document.getElementById('workersGrid');
+  if (!state.workers || !state.workers.length) {
+    grid.innerHTML = `<div class="empty-state"><span class="e-icon">👷</span><p>No workers yet. Add workers here or through a crew.</p></div>`;
+    return;
+  }
+
+  let list = state.workers;
+  if (currentWorkerFilter === 'assigned')   list = list.filter(w => w.crewId);
+  if (currentWorkerFilter === 'unassigned') list = list.filter(w => !w.crewId);
+
+  if (!list.length) {
+    grid.innerHTML = `<div class="empty-state"><span class="e-icon">👷</span><p>No workers in this category.</p></div>`;
+    return;
+  }
+
+  // Sort: foremen first, then lead hands, then alphabetical
+  const roleOrder = { 'Foreman':0, 'Lead Hand':1, 'Operator':2, 'Driver':3, 'Labourer':4 };
+  list = [...list].sort((a,b) => {
+    const ro = (roleOrder[a.role]??5) - (roleOrder[b.role]??5);
+    if (ro !== 0) return ro;
+    return a.name.localeCompare(b.name);
+  });
+
+  grid.innerHTML = list.map(w => {
+    const crew = state.crews.find(c => c.id === w.crewId);
+    const today = todayStr();
+    const onJob = crew && state.assignments.find(a => a.crewId === crew.id && a.start <= today && a.end >= today && a.status !== 'complete');
+    return `<div class="card">
+      <div class="card-top">
+        <div>
+          <div class="card-name">${esc(w.name)}</div>
+          <div class="card-sub" style="margin-top:4px">${roleBadge(w.role)}</div>
+        </div>
+        <span class="status-badge ${crew ? (onJob ? 'status-inuse' : 'status-available') : 'status-repair'}" style="${!crew?'background:#F2EFE8;color:#6B6560;border-color:#C8C3BA':''}">${crew ? (onJob ? 'On Job' : 'Available') : 'Unassigned'}</span>
+      </div>
+      <div class="card-meta">
+        ${crew
+          ? `<strong>Crew:</strong> ${esc(crew.name)}<br><span style="font-size:0.75rem">${esc(crew.foreman)}</span>${onJob ? `<br><strong>Job:</strong> ${esc(onJob.job)}` : ''}`
+          : `<span style="color:var(--mid)">Not assigned to a crew</span>`}
+        ${w.notes ? `<br><span style="font-size:0.78rem;color:var(--mid)">${esc(w.notes)}</span>` : ''}
+      </div>
+      <div class="card-actions" onclick="event.stopPropagation()">
+        <button class="btn btn-sm btn-secondary" onclick="openEditWorker('${w.id}')">Edit</button>
+        <button class="btn btn-sm btn-blue" onclick="openReassignWorker('${w.id}')">Reassign</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteWorker('${w.id}')">Remove</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openAddWorker() {
+  state.editingWorkerId = null;
+  document.getElementById('workerFormTitle').textContent = 'Add Worker';
+  document.getElementById('wf_name').value = '';
+  document.getElementById('wf_role').value = 'Labourer';
+  document.getElementById('wf_notes').value = '';
+  const cs = document.getElementById('wf_crew');
+  cs.innerHTML = '<option value="">— Unassigned —</option>' + state.crews.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
+  openOverlay('workerFormOverlay');
+}
+
+function openEditWorker(id) {
+  const w = state.workers.find(x=>x.id===id); if(!w) return;
+  state.editingWorkerId = id;
+  document.getElementById('workerFormTitle').textContent = 'Edit Worker';
+  document.getElementById('wf_name').value = w.name;
+  document.getElementById('wf_role').value = w.role;
+  document.getElementById('wf_notes').value = w.notes || '';
+  const cs = document.getElementById('wf_crew');
+  cs.innerHTML = '<option value="">— Unassigned —</option>' + state.crews.map(c=>`<option value="${c.id}" ${c.id===w.crewId?'selected':''}>${esc(c.name)}</option>`).join('');
+  openOverlay('workerFormOverlay');
+}
+
+function openReassignWorker(id) {
+  // reuse edit form, scroll to crew field
+  openEditWorker(id);
+  setTimeout(()=>{ document.getElementById('wf_crew').focus(); }, 200);
+}
+
+function saveWorker() {
+  const name = document.getElementById('wf_name').value.trim();
+  const role = document.getElementById('wf_role').value;
+  const crewId = document.getElementById('wf_crew').value || null;
+  const notes = document.getElementById('wf_notes').value.trim();
+  if (!name) { alert('Please enter a worker name.'); return; }
+
+  if (state.editingWorkerId) {
+    const w = state.workers.find(x=>x.id===state.editingWorkerId);
+    const oldCrewId = w.crewId;
+    Object.assign(w, { name, role, crewId, notes });
+    // Sync crew workers_list: remove from old crew, add to new
+    if (oldCrewId) {
+      const oldCrew = state.crews.find(c=>c.id===oldCrewId);
+      if (oldCrew) oldCrew.workers_list = (oldCrew.workers_list||[]).filter(x=>x.id!==w.id);
+    }
+    if (crewId) {
+      const newCrew = state.crews.find(c=>c.id===crewId);
+      if (newCrew) {
+        if (!newCrew.workers_list) newCrew.workers_list = [];
+        const existing = newCrew.workers_list.find(x=>x.id===w.id);
+        if (existing) Object.assign(existing, {name, role});
+        else newCrew.workers_list.push({ id: w.id, name, role });
+      }
+    }
+  } else {
+    const newId = uid();
+    state.workers.push({ id: newId, name, role, crewId, notes });
+    // Sync to crew workers_list
+    if (crewId) {
+      const crew = state.crews.find(c=>c.id===crewId);
+      if (crew) {
+        if (!crew.workers_list) crew.workers_list = [];
+        crew.workers_list.push({ id: newId, name, role });
+      }
+    }
+  }
+
+  saveState();
+  closeOverlay('workerFormOverlay');
+  renderWorkers();
+  updateStats();
+}
+
+function deleteWorker(id) {
+  if (!confirm('Remove this worker from the system?')) return;
+  const w = state.workers.find(x=>x.id===id);
+  if (w && w.crewId) {
+    const crew = state.crews.find(c=>c.id===w.crewId);
+    if (crew) crew.workers_list = (crew.workers_list||[]).filter(x=>x.id!==id);
+  }
+  state.workers = state.workers.filter(x=>x.id!==id);
+  saveState();
+  renderWorkers();
+  updateStats();
+}
+
+// ═══════════════════════════════════
+// DISPATCH SHEET
+// ═══════════════════════════════════
+function openDispatch() {
+  const today = todayStr();
+  const dateLabel = new Date().toLocaleDateString('en-CA',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  const activeJobs = state.assignments.filter(a=>a.start<=today&&a.end>=today&&a.status!=='complete');
+  const inUseIds = getInUseEqIds(today);
+  const freeEq = state.equipment.filter(e=>!inUseIds.has(e.id)&&e.status!=='repair');
+  const unavailCrews = state.crews.filter(c=>(c.availability||[]).some(b=>b.start<=today&&b.end>=today));
+
+  let jobsHtml = '';
+  if (!activeJobs.length) {
+    jobsHtml = '<div class="dispatch-no-jobs">No active jobs scheduled for today.</div>';
+  } else {
+    activeJobs.forEach(a=>{
+      const crew = state.crews.find(c=>c.id===a.crewId);
+      const allEqIds = getAssignmentAllEq(a);
+      const eqNames = allEqIds.map(id=>{const e=state.equipment.find(x=>x.id===id);return e?esc(e.name):null;}).filter(Boolean);
+      const workers = crew ? (crew.workers_list||[]) : [];
+      jobsHtml += `<div class="dispatch-job">
+        <div class="dispatch-job-name">${esc(a.job)}</div>
+        <div class="dispatch-meta">
+          📍 ${esc(a.address)||'No address'}<br>
+          📅 ${a.start} → ${a.end}<br>
+          ${crew?`👷 <strong>${esc(crew.name)}</strong> — ${esc(crew.foreman)}${workers.length?'<br>   Workers: '+workers.map(w=>esc(w.name)+' ('+esc(w.role)+')').join(', '):''}`:'No crew assigned'}<br>
+          ${eqNames.length?`🔧 ${eqNames.join(', ')}<br>`:''}
+          ${a.client?`👤 ${esc(a.client)}${a.phone?' · '+esc(a.phone):''}${a.email?' · '+esc(a.email):''}<br>`:''}
+          ${a.notes?`📝 ${esc(a.notes)}`:''}
+        </div>
+      </div>`;
+    });
+  }
+
+  const freeEqHtml = freeEq.length
+    ? freeEq.map(e=>`<span class="dispatch-eq-chip">${esc(e.name)}</span>`).join('')
+    : '<span style="font-family:Inconsolata,monospace;font-size:0.75rem;color:var(--mid)">All equipment is currently in use.</span>';
+
+  const unavailHtml = unavailCrews.length
+    ? unavailCrews.map(c=>{
+        const b = c.availability.find(x=>x.start<=today&&x.end>=today);
+        return `<div class="dispatch-meta">· ${esc(c.name)}: ${esc(b?.reason||'Unavailable')} (until ${b?.end})</div>`;
+      }).join('')
+    : '<div class="dispatch-no-jobs">No crews marked unavailable today.</div>';
+
+  document.getElementById('dispatchContent').innerHTML = `
+    <div class="dispatch-header">
+      <div>
+        <div class="dispatch-logo">Field<span>Ops</span></div>
+        <div style="font-family:Inconsolata,monospace;font-size:0.7rem;color:var(--mid);margin-top:4px;letter-spacing:1px">DAILY DISPATCH SHEET</div>
+      </div>
+      <div class="dispatch-date">${dateLabel}<br><span style="font-size:0.7rem;color:var(--mid)">Printed: ${new Date().toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit'})}</span></div>
+    </div>
+    <div class="dispatch-section-title">Active Jobs Today (${activeJobs.length})</div>
+    ${jobsHtml}
+    <div class="dispatch-section-title">Available Equipment (${freeEq.length})</div>
+    <div class="dispatch-eq-free">${freeEqHtml}</div>
+    <div class="dispatch-section-title">Crew Availability</div>
+    ${unavailHtml}
+  `;
+
+  // Show dispatch in a full-screen overlay with a print button
+  const area = document.getElementById('dispatchPrintArea');
+  area.style.cssText = 'display:block;position:fixed;inset:0;z-index:9999;background:#fff;overflow:auto;padding:2rem';
+
+  // Add action bar if not already present
+  let bar = document.getElementById('dispatchActionBar');
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.id = 'dispatchActionBar';
+    bar.style.cssText = 'position:sticky;top:0;background:#111;padding:0.75rem 1.5rem;display:flex;justify-content:space-between;align-items:center;margin:-2rem -2rem 2rem;z-index:10';
+    bar.innerHTML = `
+      <span style="font-family:'Inconsolata',monospace;font-size:0.7rem;color:#F5C800;letter-spacing:2px;text-transform:uppercase">Dispatch Sheet Preview</span>
+      <div style="display:flex;gap:0.75rem">
+        <button onclick="window.print()" style="background:#F5C800;color:#111;border:none;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:2px;text-transform:uppercase;padding:0.5rem 1.2rem">🖨 Print</button>
+        <button onclick="closeDispatch()" style="background:transparent;color:#fff;border:1px solid #444;cursor:pointer;font-family:'Inconsolata',monospace;font-size:0.7rem;letter-spacing:1px;text-transform:uppercase;padding:0.5rem 1rem">✕ Close</button>
+      </div>
+    `;
+    area.insertBefore(bar, area.firstChild);
+  }
+}
+
+function closeDispatch() {
+  const area = document.getElementById('dispatchPrintArea');
+  area.style.cssText = 'display:none';
+}
+
+// ═══════════════════════════════════
+// EQ-SIDE BOOKING
+// ═══════════════════════════════════
+function openEqBookingForm(eqId) {
+  state.bookingEqId = eqId;
+  const eq = state.equipment.find(e=>e.id===eqId);
+  document.getElementById('eqBookingTitle').textContent = `Book: ${eq?.name||'Equipment'}`;
+
+  // Populate crew dropdown
+  const cs = document.getElementById('ebk_crew');
+  cs.innerHTML = '<option value="">— Select Crew —</option>' +
+    state.crews.map(c=>`<option value="${c.id}">${c.name} (${c.foreman})</option>`).join('');
+
+  document.getElementById('ebk_job').innerHTML = '<option value="">— No specific job —</option>';
+  document.getElementById('ebk_full').checked = true;
+  document.getElementById('ebk_custom_dates').style.display = 'none';
+  document.getElementById('ebk_start').value = todayStr();
+  document.getElementById('ebk_end').value = '';
+  document.getElementById('ebk_notes').value = '';
+  document.getElementById('eqBookConflictAlert').classList.remove('visible');
+
+  openOverlay('eqBookingFormOverlay');
+}
+
+function onEqBookCrewChange() {
+  const crewId = document.getElementById('ebk_crew').value;
+  const jobSel = document.getElementById('ebk_job');
+  jobSel.innerHTML = '<option value="">— No specific job —</option>';
+  if (!crewId) return;
+  const jobs = state.assignments.filter(a=>a.crewId===crewId);
+  jobSel.innerHTML += jobs.map(a=>`<option value="${a.id}">${a.job} (${a.start} → ${a.end})</option>`).join('');
+  jobSel.onchange = () => {
+    const assign = state.assignments.find(a=>a.id===jobSel.value);
+    if (assign) {
+      document.getElementById('ebk_start').value = assign.start;
+      document.getElementById('ebk_end').value = assign.end;
+    }
+    checkEqBookConflicts();
+  };
+  checkEqBookConflicts();
+}
+
+function toggleEqBookingDates() {
+  const isCustom = document.getElementById('ebk_custom').checked;
+  document.getElementById('ebk_custom_dates').style.display = isCustom ? 'block' : 'none';
+  // If switching to full job, pull dates from selected job
+  if (!isCustom) {
+    const jobId = document.getElementById('ebk_job').value;
+    const assign = state.assignments.find(a=>a.id===jobId);
+    if (assign) {
+      document.getElementById('ebk_start').value = assign.start;
+      document.getElementById('ebk_end').value = assign.end;
+    }
+  }
+  checkEqBookConflicts();
+}
+
+function checkEqBookConflicts() {
+  const isCustom = document.getElementById('ebk_custom').checked;
+  const jobId = document.getElementById('ebk_job').value;
+  const assign = state.assignments.find(a=>a.id===jobId);
+  const start = isCustom ? document.getElementById('ebk_start').value : (assign?.start || document.getElementById('ebk_start').value);
+  const end   = isCustom ? document.getElementById('ebk_end').value   : (assign?.end   || document.getElementById('ebk_end').value);
+  if (!start || !end || !state.bookingEqId) return;
+  const conflicts = findConflicts([state.bookingEqId], start, end, jobId||null);
+  const alertEl = document.getElementById('eqBookConflictAlert');
+  if (conflicts.length) { alertEl.innerHTML = [...new Set(conflicts)].join('<br>'); alertEl.classList.add('visible'); }
+  else alertEl.classList.remove('visible');
+}
+
+function saveEqBooking() {
+  const crewId = document.getElementById('ebk_crew').value;
+  const jobId  = document.getElementById('ebk_job').value;
+  const isCustom = document.getElementById('ebk_custom').checked;
+  const assign = state.assignments.find(a=>a.id===jobId);
+  const start = isCustom ? document.getElementById('ebk_start').value : (assign?.start || document.getElementById('ebk_start').value);
+  const end   = isCustom ? document.getElementById('ebk_end').value   : (assign?.end   || document.getElementById('ebk_end').value);
+  const notes = document.getElementById('ebk_notes').value.trim();
+
+  if (!crewId) { alert('Please select a crew.'); return; }
+  if (!start || !end) { alert('Please provide booking dates.'); return; }
+  if (end < start) { alert('End date must be after start date.'); return; }
+  if(document.getElementById('eqBookConflictAlert').classList.contains('visible')){
+    alert('Cannot save — equipment conflicts must be resolved before confirming this booking.');return;
+  }
+
+  state.bookings.push({
+    id: uid(), crewId, assignmentId: jobId||null,
+    equipmentIds: [state.bookingEqId],
+    start, end, notes, scope: isCustom?'custom':'full'
+  });
+  saveState();
+  closeOverlay('eqBookingFormOverlay');
+  renderEquipment();
+}
+
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
+document.getElementById('headerDate').textContent=new Date().toLocaleDateString('en-CA',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+loadState();
+updateHome();
+</script>
+</div><!-- /appShell -->
+</body>
+</html>
